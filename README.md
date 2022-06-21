@@ -28,9 +28,9 @@ npm i @jaspargupta/cache-manager
 
 ```typescript
 // cache.ts
-import register from './register';
-import PlainObjectDriver from './plain-object';
-import StorageDriver from './storage';
+import register from '@jaspargupta/cache-manager';
+import PlainObjectDriver from '@jaspargupta/cache-manager/dist/drivers/plain-object';
+import StorageDriver from './@jaspargupta/cache-manager/dist/drivers/storage';
 
 /**
  * Create your cache manager by registering cache drivers.
@@ -79,7 +79,7 @@ If you want to use the `RedisDriver` you'll have to `npm i redis` and create a [
 
 ```typescript
 import { createClient } from 'redis';
-import RedisDriver from './redis';
+import RedisDriver from '@jaspargupta/cache-manager/dist/drivers/redis';
 
 const client = createClient();
 
@@ -92,7 +92,7 @@ Each driver extends the `CacheDriver` base class, write the implementation for e
 
 ```typescript
 // my-cache-driver.ts
-import CacheDriver from './driver';
+import CacheDriver from '@jaspargupta/cache-manager/dist/drivers/driver';
 
 export default class MyCacheDriver extends CacheDriver {
   public flush() {
