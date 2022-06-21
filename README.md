@@ -30,6 +30,7 @@ npm i @jaspargupta/cache-manager
 // cache.ts
 import register from './register';
 import PlainObjectDriver from './plain-object';
+import StorageDriver from './storage';
 
 /**
  * Create your cache manager by registering cache drivers.
@@ -38,6 +39,8 @@ import PlainObjectDriver from './plain-object';
 const cache = register({
   main: new PlainObjectDriver(),
   secondary: new PlainObjectDriver(),
+  localStorage: new StorageDriver(window.localStorage),
+  sessionStorage: new StorageDriver(window.sessionStorage),
 }, 'main');
 
 export default cache;
