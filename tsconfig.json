@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "moduleResolution": "Node",
+        "outDir": "./dist",
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES2021"
+    },
+    "exclude": [
+        "**/*/*.test.ts",
+        "node_modules"
+    ],
+    "include": [
+        "src"
+    ]
+}
