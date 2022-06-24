@@ -94,8 +94,13 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   private async connect<T>(callback: () => T): Promise<T> {
     if (!this.connected) {
-      await this.store.connect();
       this.connected = true;
+
+      try {
+        await this.store.connect();
+      } catch (error) {
+        this.connected = false;
+      }
     }
 
     try {
@@ -103,9 +108,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     } finally {
       clearTimeout(this.timer);
 
-      this.timer = setTimeout(async () => {
-        await this.store.disconnect();
-      }, 5e3) as unknown as number; // Stupid TypeScript.
+      this.timer = setTimeout(() => this.store.quit(), 5e3) as unknown as number; // Stupid TypeScript.
     }
   }
 }
