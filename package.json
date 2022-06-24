@@ -35,6 +35,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hirespace/hs-next-api-router.git"
+    "url": "https://github.com/hirespace/hs-cache-manager.git"
   }
 }
