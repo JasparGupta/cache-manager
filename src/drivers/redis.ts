@@ -94,8 +94,13 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   private async connect<T>(callback: () => T): Promise<T> {
     if (!this.connected) {
-      await this.store.connect();
       this.connected = true;
+
+      try {
+        await this.store.connect();
+      } catch (error) {
+        this.connected = false;
+      }
     }
 
     try {
