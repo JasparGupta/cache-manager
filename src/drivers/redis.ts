@@ -103,9 +103,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     } finally {
       clearTimeout(this.timer);
 
-      this.timer = setTimeout(async () => {
-        await this.store.disconnect();
-      }, 5e3) as unknown as number; // Stupid TypeScript.
+      this.timer = setTimeout(() => this.store.quit(), 5e3) as unknown as number; // Stupid TypeScript.
     }
   }
 }
