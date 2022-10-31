@@ -1,6 +1,6 @@
 {
-  "name": "@jaspargupta/cache-manager",
-  "version": "1.0.0-beta.5",
+  "name": "@hirespace/hs-cache-manager",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
@@ -29,5 +29,12 @@
     "jest-environment-jsdom": "^28.1.1",
     "ts-jest": "^28.0.5",
     "typescript": "^4.7.4"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hirespace/hs-cache-manager.git"
   }
 }
