@@ -95,12 +95,15 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   private async connect<T>(callback: () => T): Promise<T> {
     clearTimeout(this.timer);
 
+    console.log('REDIS IS OPEN', this.store.isOpen);
+
     if (!this.connected) {
       this.connected = true;
 
       try {
         await this.store.connect();
       } catch (error) {
+        console.error('Failed to connect', error);
         this.connected = false;
       }
     }
