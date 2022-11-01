@@ -2,22 +2,12 @@ import type { createClient } from 'redis';
 import CacheDriver from './driver';
 
 export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
-  private connected = false;
-
-  private timer?: number;
+  private timer?: NodeJS.Timer;
 
   constructor(client: Client) {
     super();
 
     this.store = client;
-
-    this.store.on('end', () => {
-      this.connected = false;
-    });
-
-    this.store.on('error', () => {
-      this.connected = false;
-    });
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
@@ -95,20 +85,16 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   private async connect<T>(callback: () => T): Promise<T> {
     clearTimeout(this.timer);
 
-    if (!this.connected) {
-      this.connected = true;
-
-      try {
-        await this.store.connect();
-      } catch (error) {
-        this.connected = false;
-      }
+    if (!this.store.isOpen) {
+      void await this.store.connect();
     }
 
     try {
       return callback();
     } finally {
-      this.timer = setTimeout(() => this.store.quit(), 5e3) as unknown as number; // Stupid TypeScript.
+      this.timer = setTimeout(() => {
+        if (this.store.isOpen) this.store.quit();
+      }, 5e3);
     }
   }
 }
