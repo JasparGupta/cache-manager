@@ -1,11 +1,12 @@
 {
   "name": "@hirespace/hs-cache-manager",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
     "browser",
     "cache",
+    "cookies",
     "node",
     "redis"
   ],
@@ -20,9 +21,12 @@
     "test:watch": "npm run test -- --watch"
   },
   "optionalDependencies": {
+    "cookies-next": "^2.1.1",
+    "crypto-js": "^4.1.1",
     "redis": "^4.1.0"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.1.1",
     "@types/jest": "^28.1.2",
     "date-fns": "^2.28.0",
     "jest": "^28.1.1",
