@@ -27,8 +27,6 @@ describe.each<[string, NextCookieDriver<unknown>]>([
       driver.put('bar', 'b');
       driver.put('baz', 'c');
 
-      console.log(`getAll ${JSON.stringify(driver.getAll())}`);
-
       expect(Object.keys(driver.getAll()).length).toBe(3);
 
       driver.flush();

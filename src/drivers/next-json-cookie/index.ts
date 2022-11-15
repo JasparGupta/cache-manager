@@ -27,10 +27,7 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
     if (this.has(key)) {
       try {
         const cookieValue = this.store.getCookie(key, options) as string;
-        console.log(`cookieValue --> ${cookieValue} ${!!decryptCookie} ${typeof decryptCookie}`);
-        const d = decryptCookie(cookieValue, this.#crypto, this.#encoder) as unknown as T;
-        console.log(`decrypt cookieValue --> ${d}`);
-        return d;
+        return decryptCookie(cookieValue, this.#crypto, this.#encoder) as unknown as T;
       } catch (error) {
         return fallback;
       }
@@ -49,7 +46,6 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
   }
 
   public has(key: string, options?: OptionsType): boolean {
-    console.log(`has(key: ${key})`)
     return this.store.hasCookie(key, options);
   }
 
