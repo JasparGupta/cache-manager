@@ -11,8 +11,13 @@ export const encryptCookie = <T = JSONValue>(value: T, crypto?: typeof AES, enco
   return crypto.encrypt(valueToEncrypt, COOKIE_ENCRYPTION_KEY).toString();
 }
 export const decryptCookie = <T = JSONValue>(value: string, crypto?: typeof AES, encoder?: typeof Utf8): T => {
-  const valueToDecrypt = isJsonable<T>(value) ? JSON.parse(value) : value;
-  if (!crypto || !encoder) return valueToDecrypt;
-  const bytes = crypto.decrypt(valueToDecrypt, COOKIE_ENCRYPTION_KEY);
-  return JSON.parse(bytes.toString(encoder) ?? '{}');
+  if (!crypto || !encoder) {
+    const valueToDecrypt = isJsonable<T>(value) ? JSON.parse(value) : value;
+    return valueToDecrypt;
+  }
+  else {
+    const bytes = crypto.decrypt(value, COOKIE_ENCRYPTION_KEY);
+    const decryptedString = bytes.toString(encoder);
+    return isJsonable<T>(decryptedString) ? JSON.parse(value ?? '{}') : decryptedString;
+  }
 }

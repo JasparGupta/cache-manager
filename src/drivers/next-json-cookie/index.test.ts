@@ -10,12 +10,8 @@ import NextCookieDriver from './index';
 
 describe.each<[string, NextCookieDriver<unknown>]>([
   ['NextCookieDriver',  new NextCookieDriver(nextCookies)],
-  ['Encoded NextCookieDriver',  new NextCookieDriver(nextCookies, AES, Utf8)],
+  ['Encoded NextCookieDriver',  new NextCookieDriver(nextCookies, { crypto: AES, encoder: Utf8 })],
 ])('%s', (_, driver) => {
-
-  beforeEach(() => {
-    driver = new NextCookieDriver(nextCookies, AES);
-  });
 
   afterEach(() => {
     driver.flush();
