@@ -7,13 +7,21 @@ import DEFAULT_COOKIE_OPTIONS from './default-cookie-options';
 import { decryptCookie, encryptCookie } from './encrypt-cookie';
 import JSONValue from '../types/json';
 
+interface Config extends CookieSerializeOptions {
+  crypto?: typeof AES,
+  encoder?: typeof Utf8,
+}
+
 class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
 
+  #config?: CookieSerializeOptions;
   #crypto?: typeof AES;
   #encoder?: typeof Utf8;
 
-  constructor(protected store: typeof nextCookies, crypto?: typeof AES, encoder?: typeof Utf8) {
+  constructor(protected store: typeof nextCookies, { crypto, encoder, ...config }: Config = {}) {
     super();
+    
+    this.#config = config;
     this.#crypto = crypto;
     this.#encoder = encoder;
   }
