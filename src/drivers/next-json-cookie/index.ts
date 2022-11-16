@@ -7,13 +7,21 @@ import DEFAULT_COOKIE_OPTIONS from './default-cookie-options';
 import { decryptCookie, encryptCookie } from './encrypt-cookie';
 import JSONValue from '../types/json';
 
+interface Config extends CookieSerializeOptions {
+  crypto?: typeof AES,
+  encoder?: typeof Utf8,
+}
+
 class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
 
+  #config?: CookieSerializeOptions;
   #crypto?: typeof AES;
   #encoder?: typeof Utf8;
 
-  constructor(protected store: typeof nextCookies, crypto?: typeof AES, encoder?: typeof Utf8) {
+  constructor(protected store: typeof nextCookies, { crypto, encoder, ...config }: Config = {}) {
     super();
+    
+    this.#config = config;
     this.#crypto = crypto;
     this.#encoder = encoder;
   }
@@ -37,12 +45,9 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
   }
 
   public getAll<T = JSONValue>() {
-    const cookieValues = this.store.getCookies();
-    const allCookies: Record<string, T> = {};
-    Object.keys(cookieValues).forEach((key) => {
-      allCookies[key] = decryptCookie<T>(cookieValues[key] as string);
-    });
-    return allCookies;
+    return Object.entries(this.store.getCookies()).reduce((cookies, [name, value]) => {
+      return { ...cookies, [name]: decryptCookie(value) };
+    }, {});
   }
 
   public has(key: string, options?: OptionsType): boolean {
