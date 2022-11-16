@@ -37,12 +37,9 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
   }
 
   public getAll<T = JSONValue>() {
-    const cookieValues = this.store.getCookies();
-    const allCookies: Record<string, T> = {};
-    Object.keys(cookieValues).forEach((key) => {
-      allCookies[key] = decryptCookie<T>(cookieValues[key] as string);
-    });
-    return allCookies;
+    return Object.entries(this.store.getCookies()).reduce((cookies, [name, value]) => {
+      return { ...cookies, [name]: decryptCookie(value) };
+    }, {});
   }
 
   public has(key: string, options?: OptionsType): boolean {
