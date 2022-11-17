@@ -8,11 +8,10 @@ import DEFAULT_COOKIE_OPTIONS from './default-cookie-options';
 import { decryptCookie, encryptCookie } from './encrypt-cookie';
 import JSONValue from '../types/json';
 
-const CACHE_MANAGER_COOKIE_NAMESPACE = 'hs_cache_'
-
 interface Config extends CookieSerializeOptions {
   crypto?: typeof AES,
   encoder?: typeof Utf8,
+  prefix?: string,
 }
 
 class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
@@ -20,13 +19,22 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
   #config?: CookieSerializeOptions;
   #crypto?: typeof AES;
   #encoder?: typeof Utf8;
+  #prefix?: string;
 
-  constructor(protected store: typeof nextCookies, { crypto, encoder, ...config }: Config = {}) {
+  constructor(protected store: typeof nextCookies, config: Config = {}) {
     super();
 
-    this.#config = config;
+    const { 
+      crypto, 
+      encoder, 
+      prefix = 'hs_cache_', 
+      ...cookieOptions 
+    } = config;
+
+    this.#config = cookieOptions;
     this.#crypto = crypto;
     this.#encoder = encoder;
+    this.#prefix = prefix;
   }
 
   public flush(options?: OptionsType): void {
