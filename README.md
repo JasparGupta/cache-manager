@@ -4,6 +4,7 @@ I guess coming from a Laravel background I enjoyed/am used to using their syntax
 
 Current drivers out of the box are (simply because these are the ones I use): 
 - Plain object (browser/server)
+- Map (browser/server)
 - Local storage (browser)
 - Session storage (browser)
 - Redis (server)
@@ -30,6 +31,7 @@ npm i @jaspargupta/cache-manager
 // cache.ts
 import register from '@jaspargupta/cache-manager';
 import PlainObjectDriver from '@jaspargupta/cache-manager/dist/drivers/plain-object';
+import MapDriver from '@jaspargupta/cache-manager/dist/drivers/map';
 import StorageDriver from './@jaspargupta/cache-manager/dist/drivers/storage';
 
 /**
@@ -39,6 +41,7 @@ import StorageDriver from './@jaspargupta/cache-manager/dist/drivers/storage';
 const cache = register({
   main: new PlainObjectDriver(),
   secondary: new PlainObjectDriver(),
+  map: new MapDriver(),
   localStorage: new StorageDriver(window.localStorage),
   sessionStorage: new StorageDriver(window.sessionStorage),
 }, 'main');
