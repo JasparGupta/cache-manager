@@ -38,11 +38,7 @@ class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
   }
 
   public flush(options?: OptionsType): void {
-    const cookieNamesToFlush = Object.keys(this.store.getCookies(options) ?? {}) ??[];
-    const isCacheManagerCooke = new RegExp(`^${CACHE_MANAGER_COOKIE_NAMESPACE}`);
-    cookieNamesToFlush.forEach((cookieNameToFlush) => {
-      if (isCacheManagerCooke.test(cookieNameToFlush)) this.store.deleteCookie(cookieNameToFlush);
-    });
+    Object.keys(this.getAll()).forEach(this.store.deleteCookie);
   }
 
   public get<T = JSONValue>(key: string, fallback: T | null = null, options?: OptionsType): T | null {
