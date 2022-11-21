@@ -1,9 +1,9 @@
 import CacheDriver from './driver';
-import { Cached } from './types';
+import { Cached, Config } from './types';
 
 export default class PlainObjectDriver extends CacheDriver<Record<string, Cached>> {
-  constructor(protected store: Record<string, Cached> = {}) {
-    super();
+  constructor(store: Record<string, Cached> = {}, config: Partial<Config> = {}) {
+    super(store, config);
   }
 
   public flush(): void {
@@ -11,21 +11,23 @@ export default class PlainObjectDriver extends CacheDriver<Record<string, Cached
   }
 
   public get<T = any>(key: string, fallback: T | null = null): T | null {
-    return this.has(key) ? this.store[key].value : fallback;
+    return this.has(key) ? this.store[this.key(key)].value : fallback;
   }
 
   public has(key: string): boolean {
-    return !!this.store[key] && !this.expired(this.store[key]);
+    const sanatised = this.key(key);
+
+    return !!this.store[sanatised] && !this.expired(this.store[sanatised]);
   }
 
   public put<T = any>(key: string, value: T, expires: Date | null = null): T {
-    this.store[key] = { expires, key, value };
+    this.store[this.key(key)] = { expires, key, value };
 
     return value;
   }
 
   public remove(key: string): void {
-    delete this.store[key];
+    delete this.store[this.key(key)];
   }
 
   private expired(item: Cached): boolean {

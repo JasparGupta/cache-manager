@@ -143,13 +143,24 @@ describe('driver', () => {
     });
   });
 
-  describe('sanatizeKey', () => {
+  describe('key', () => {
     test.each([
       ['foo', 'foo'],
       [10, '10']
     ])('converts the given key to a string value', (value, expected) => {
       // @ts-ignore
-      expect(driver.sanatiseKey(value)).toBe(expected);
+      expect(driver.key(value)).toBe(expected);
+    });
+
+    test.each<[string, string]>([
+      ['', 'test'],
+      ['prefix', 'prefix.test']
+    ])('applies prefix to given key', (prefix, key) => {
+      // @ts-ignore
+      driver.config.prefix = prefix;
+
+      // @ts-ignore
+      expect(driver.key('test')).toBe(key);
     });
   });
 });

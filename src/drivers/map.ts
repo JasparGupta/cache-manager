@@ -1,9 +1,9 @@
-import { Cached } from './types';
+import { Cached, Config } from './types';
 import CacheDriver from './driver';
 
 export default class MapDriver extends CacheDriver<Map<string, Cached>> {
-  constructor(protected store: Map<string, Cached> = new Map()) {
-    super();
+  constructor(store: Map<string, Cached> = new Map(), config: Partial<Config> = {}) {
+    super(store, config);
   }
 
   public flush(): void {
@@ -11,7 +11,7 @@ export default class MapDriver extends CacheDriver<Map<string, Cached>> {
   }
 
   public get<T>(key: string, fallback: T | null = null): T | null {
-    const cached = this.store.get(key);
+    const cached = this.store.get(this.key(key));
 
     if (!cached) return fallback;
 
@@ -23,12 +23,12 @@ export default class MapDriver extends CacheDriver<Map<string, Cached>> {
   }
 
   public put<T>(key: string, value: T, expires: Date | null = null): T {
-    this.store.set(key, { expires, key, value });
+    this.store.set(this.key(key), { expires, key, value });
 
     return value;
   }
 
   public remove(key: string): void {
-    this.store.delete(key);
+    this.store.delete(this.key(key));
   }
 }

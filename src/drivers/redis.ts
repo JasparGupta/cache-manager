@@ -12,7 +12,9 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   public async decrement(key: string, count = 1): Promise<number> {
     return this.connect(() => {
-      return count > 1 ? this.store.decrBy(key, count) : this.store.decr(key);
+      const sanatised = this.key(key);
+
+      return count > 1 ? this.store.decrBy(sanatised, count) : this.store.decr(sanatised);
     });
   }
 
@@ -21,11 +23,9 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   }
 
   public async get<T = any>(key: string | number, fallback: T | null = null): Promise<T | null> {
-    const sanatisedKey = this.sanatiseKey(key);
-
     return this.connect(async () => {
-      if (await this.has(sanatisedKey)) {
-        const cache = await this.store.get(sanatisedKey);
+      if (await this.has(key)) {
+        const cache = await this.store.get(this.key(key));
 
         try {
           return JSON.parse(cache!);
@@ -40,7 +40,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   public async getMany<T = any>(keys: string[] | number[], fallback: T[] = []): Promise<T[]> {
     return this.connect(async () => {
-      const response = await this.api().mGet(keys.map(this.sanatiseKey));
+      const response = await this.api().mGet(keys.map(this.key));
 
       return response.length > 0
         ? response
@@ -51,22 +51,24 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   }
 
   public async has(key: string | number): Promise<boolean> {
-    return !!(await this.connect(() => this.store.exists(this.sanatiseKey(key))));
+    return !!(await this.connect(() => this.store.exists(this.key(key))));
   }
 
   public async increment(key: string, count = 1): Promise<number> {
     return this.connect(() => {
-      return count > 1 ? this.store.incrBy(key, count) : this.store.incr(key);
+      const sanatised = this.key(key);
+
+      return count > 1 ? this.store.incrBy(sanatised, count) : this.store.incr(sanatised);
     });
   }
 
   public async put<T = any>(key: string | number, value: T, date: Date | null = null): Promise<T> {
-    const sanatisedKey = this.sanatiseKey(key);
-
     return this.connect(async () => {
-      await this.store.set(sanatisedKey, JSON.stringify(value));
+      const sanatised = this.key(key);
 
-      if (date) await this.store.expireAt(sanatisedKey, Math.floor(date.getTime() / 1000));
+      await this.store.set(sanatised, JSON.stringify(value));
+
+      if (date) await this.store.expireAt(sanatised, Math.floor(date.getTime() / 1000));
 
       return value;
     });
@@ -79,7 +81,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   }
 
   public async remove(key: string | number): Promise<void> {
-    await this.connect(() => this.store.del(this.sanatiseKey(key)));
+    await this.connect(() => this.store.del(this.key(key)));
   }
 
   private async connect<T>(callback: () => T): Promise<T> {

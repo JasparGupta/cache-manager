@@ -1,25 +1,6 @@
 import { createClient } from 'redis';
 
 describe('RedisDriver', () => {
-  describe('constructor', () => {
-    test('creates "end" and "error" redis event listeners', async () => {
-      const client = createClient();
-      const spy = jest.spyOn(client, 'on');
-
-      const { default: RedisDriver } = await import('./redis');
-
-      const driver = new RedisDriver(client);
-
-      const [[end], [error]] = spy.mock.calls;
-
-      expect(spy).toHaveBeenCalled();
-      // Assert that first call to "redis.on" is "end".
-      expect(end).toBe('end');
-      // Assert that second call to "redis.on" is "error".
-      expect(error).toBe('error');
-    });
-  });
-
   describe('flush', () => {
     test('removes all keys from redis', async () => {
       const { default: RedisDriver } = await import('./redis');
@@ -124,7 +105,7 @@ describe('RedisDriver', () => {
       expect(actual).toBe('bar');
       expect(spySet).toHaveBeenCalledWith('foo', JSON.stringify('bar'));
 
-      if (expires) expect(spyExpireAt).toHaveBeenCalledWith('foo', expires.getTime());
+      if (expires) expect(spyExpireAt).toHaveBeenCalledWith('foo', Math.floor(expires.getTime() / 1000));
 
       spyConnect.mockRestore();
       spySet.mockRestore();
@@ -191,14 +172,19 @@ describe('RedisDriver', () => {
       const driver = new RedisDriver(createClient());
 
       // @ts-ignore
-      const spyConnect = jest.spyOn(driver.api(), 'connect').mockResolvedValue('OK');
-      const spyDisconnect = jest.spyOn(driver.api(), 'disconnect').mockImplementation(async () => {
-        /**
-         * In reality the Redis event "end" would be triggered by calling "disconnect".
-         * But for brevity, I'm making the disconnect function physically set "connected" to "false".
-         */
+      const spyIsOpen = jest.spyOn(driver.store, 'isOpen', 'get').mockReturnValue(false);
+
+      // @ts-ignore
+      const spyConnect = jest.spyOn(driver.store, 'connect').mockImplementation(async () => {
         // @ts-ignore
-        driver.connected = false;
+        spyIsOpen.mockReset().mockReturnValue(true);
+        // driver.store.isOpen = true;
+      });
+      // @ts-ignore
+      const spyQuit = jest.spyOn(driver.store, 'quit').mockImplementation(async () => {
+        // @ts-ignore
+        spyIsOpen.mockReset().mockReturnValue(false);
+        // driver.store.isOpen = false;
       });
 
       const callback = jest.fn().mockResolvedValue('foo');
@@ -208,17 +194,17 @@ describe('RedisDriver', () => {
 
       expect(spyConnect).toHaveBeenCalled();
       // @ts-ignore
-      expect(driver.connected).toBe(true);
+      expect(driver.store.isOpen).toBe(true);
       expect(callback).toHaveBeenCalled();
 
       jest.runAllTimers();
 
-      expect(spyDisconnect).toHaveBeenCalled();
+      expect(spyQuit).toHaveBeenCalled();
       // @ts-ignore
-      expect(driver.connected).toBe(false);
+      expect(driver.store.isOpen).toBe(false);
 
       spyConnect.mockRestore();
-      spyDisconnect.mockRestore();
+      spyQuit.mockRestore();
     });
   });
 });

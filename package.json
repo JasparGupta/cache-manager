@@ -14,7 +14,9 @@
     "dist/**/*"
   ],
   "scripts": {
-    "prebuild": "rm -rf ./dist",
+    "preclean": "npm test",
+    "clean": "rm -rf ./dist",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "build:watch": "npm run build -- --watch",
     "prepublishOnly": "npm run build",
