@@ -1,9 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,class-methods-use-this */
 import isPromise from '../support/is-promise';
-import { Promisable } from './types';
+import { Config, Promisable } from './types';
 
 export default abstract class CacheDriver<Store = any> {
-  protected store: Store = null as unknown as Store;
+  protected config: Config;
+
+  protected store: Store;
+
+  constructor(store: Store = null as unknown as Store, config: Partial<Config> = {}) {
+    this.store = store;
+    this.config = {
+      prefix: '',
+      ...config,
+    };
+  }
 
   /**
    * Return underlying cache API.
@@ -77,7 +87,7 @@ export default abstract class CacheDriver<Store = any> {
    */
   public abstract remove(key: string): void;
 
-  protected sanatiseKey(key: string | number): string {
-    return typeof key === 'number' ? key.toString() : key;
+  protected key(key: string | number): string {
+    return this.config.prefix ? `${this.config.prefix}.${key}` : key.toString();
   }
 }
