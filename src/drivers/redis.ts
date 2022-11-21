@@ -1,13 +1,12 @@
 import type { createClient } from 'redis';
 import CacheDriver from './driver';
+import { Config } from './types';
 
 export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
   private timer?: NodeJS.Timer;
 
-  constructor(client: Client) {
-    super();
-
-    this.store = client;
+  constructor(client: Client, config: Partial<Config> = {}) {
+    super(client, config);
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
