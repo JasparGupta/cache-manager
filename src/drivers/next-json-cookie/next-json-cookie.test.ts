@@ -2,16 +2,19 @@
  * @jest-environment jsdom
  */
 import * as nextCookies from 'cookies-next';
-import AES from 'crypto-js/aes';
-import Utf8 from 'crypto-js/enc-utf8';
 import addMinutes from 'date-fns/addMinutes';
 import subMinutes from 'date-fns/subMinutes';
-import NextCookieDriver from './index';
+import NextCookieDriver from './next-json-cookie';
 
-describe.each<[string, NextCookieDriver<unknown>]>([
-  ['NextCookieDriver',  new NextCookieDriver(nextCookies)],
-  ['Encoded NextCookieDriver',  new NextCookieDriver(nextCookies, { crypto: AES, encoder: Utf8 })],
-])('%s', (_, driver) => {
+describe.each<[string, () => NextCookieDriver<unknown>]>([
+  ['NextCookieDriver', () => new NextCookieDriver(nextCookies)],
+  ['Encrypted NextCookieDriver', () => new NextCookieDriver(nextCookies, { encrypt: true })],
+])('%s', (_, init) => {
+  let driver: NextCookieDriver<unknown>;
+
+  beforeEach(() => {
+    driver = init();
+  });
 
   afterEach(() => {
     driver.flush();
@@ -104,5 +107,5 @@ describe.each<[string, NextCookieDriver<unknown>]>([
 
       expect(driver.get('foo')).toBeNull();
     });
-  })
+  });
 });
