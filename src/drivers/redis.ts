@@ -66,7 +66,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     return this.connect(async () => {
       await this.store.set(sanatisedKey, JSON.stringify(value));
 
-      if (date) await this.store.expireAt(sanatisedKey, date.getTime());
+      if (date) await this.store.expireAt(sanatisedKey, Math.floor(date.getTime() / 1000));
 
       return value;
     });
