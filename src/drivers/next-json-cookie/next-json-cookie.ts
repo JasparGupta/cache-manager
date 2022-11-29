@@ -1,4 +1,4 @@
-import nextCookies from 'cookies-next';
+import * as nextCookies from 'cookies-next';
 import { CookieSerializeOptions } from 'cookie';
 import { Config as BaseConfig } from '../types';
 import JSONValue from '../types/json';

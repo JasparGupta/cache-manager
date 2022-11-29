@@ -1,16 +1,15 @@
 /**
  * @jest-environment jsdom
  */
-import * as nextCookies from 'cookies-next';
 import addMinutes from 'date-fns/addMinutes';
 import subMinutes from 'date-fns/subMinutes';
 import NextCookieDriver from './next-json-cookie';
 
-describe.each<[string, () => NextCookieDriver<unknown>]>([
-  ['NextCookieDriver', () => new NextCookieDriver(nextCookies)],
-  ['Encrypted NextCookieDriver', () => new NextCookieDriver(nextCookies, { encrypt: true })],
+describe.each<[string, () => NextCookieDriver]>([
+  ['NextCookieDriver', () => new NextCookieDriver()],
+  ['Encrypted NextCookieDriver', () => new NextCookieDriver(null, { encrypt: true })],
 ])('%s', (_, init) => {
-  let driver: NextCookieDriver<unknown>;
+  let driver: NextCookieDriver;
 
   beforeEach(() => {
     driver = init();
