@@ -12,14 +12,14 @@ interface Config extends BaseConfig, CookieSerializeOptions {
   encryptionKey?: string,
 }
 
-export default class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof nextCookies> {
+export default class NextCookieDriver extends CacheDriver<typeof nextCookies> {
 
   #encrypt: boolean;
 
   #encryptionKey: string;
 
-  constructor(store: typeof nextCookies | null = nextCookies, { encrypt, encryptionKey, ...config }: Partial<Config> = {}) {
-    super(store ?? nextCookies, { prefix: 'hs_cache', ...config });
+  constructor(_store?: null, { encrypt, encryptionKey, ...config }: Partial<Config> = {}) {
+    super(nextCookies, { prefix: 'hs_cache', ...config });
 
     this.#encrypt = encrypt ?? false;
     /**
