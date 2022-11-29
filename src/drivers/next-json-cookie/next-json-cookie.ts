@@ -18,8 +18,8 @@ export default class NextCookieDriver<TmpCookiesObj> extends CacheDriver<typeof 
 
   #encryptionKey: string;
 
-  constructor(store: typeof nextCookies, { encrypt, encryptionKey, ...config }: Partial<Config> = {}) {
-    super(store, { prefix: 'hs_cache', ...config });
+  constructor(store: typeof nextCookies | null = nextCookies, { encrypt, encryptionKey, ...config }: Partial<Config> = {}) {
+    super(store ?? nextCookies, { prefix: 'hs_cache', ...config });
 
     this.#encrypt = encrypt ?? false;
     /**
