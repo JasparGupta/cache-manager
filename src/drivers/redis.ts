@@ -91,7 +91,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     }
 
     try {
-      return callback();
+      return await callback();
     } finally {
       this.timer = setTimeout(() => {
         if (this.store.isOpen) this.store.quit();
