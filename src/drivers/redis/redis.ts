@@ -1,12 +1,13 @@
+import { ClientClosedError } from '@redis/client/dist/lib/errors';
 import type { createClient } from 'redis';
-import CacheDriver from './driver';
+import CacheDriver from '../driver';
 import { Config } from './types';
 
-export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
-  private timer?: NodeJS.Timer;
+type RedisInstance = ReturnType<typeof createClient>;
 
+export default class RedisDriver<Client extends RedisInstance> extends CacheDriver<Client, Config> {
   constructor(client: Client, config: Partial<Config> = {}) {
-    super(client, config);
+    super(client, { keepAlive: false, ...config });
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
@@ -15,6 +16,16 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
       return count > 1 ? this.store.decrBy(sanatised, count) : this.store.decr(sanatised);
     });
+  }
+
+  public async disconnect(): Promise<void> {
+    try {
+      return await this.store.quit();
+    } catch (e) {
+      if (!(e instanceof ClientClosedError)) {
+        throw e;
+      }
+    }
   }
 
   public async flush(): Promise<void> {
@@ -74,18 +85,35 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
   }
 
   public async remember<T = any>(key: string | number, callback: () => T, expires: Date | null = null): Promise<T> {
-    const cache = await this.get(key);
+    return this.run(async () => {
+      const cache = await this.get(key);
 
-    return cache !== null ? cache : this.put(key, await callback(), expires);
+      return cache !== null ? cache : this.put(key, await callback(), expires);
+    });
   }
 
   public async remove(key: string | number): Promise<void> {
     await this.connect(() => this.store.del(this.key(key)));
   }
 
-  private async connect<T>(callback: () => T): Promise<T> {
-    clearTimeout(this.timer);
+  public async run<T>(callback: () => T): Promise<T> {
+    this.config.keepAlive = true;
 
+    try {
+      return await this.connect(callback);
+    } finally {
+      this.config.keepAlive = false;
+      void await this.disconnect();
+    }
+  }
+
+  public setConfig(config: Partial<Config>): this {
+    this.config = { ...this.config, ...config };
+
+    return this;
+  }
+
+  private async connect<T>(callback: () => T): Promise<T> {
     if (!this.store.isOpen) {
       void await this.store.connect();
     }
@@ -93,9 +121,12 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     try {
       return await callback();
     } finally {
-      this.timer = setTimeout(() => {
-        if (this.store.isOpen) this.store.quit();
-      }, 5e3);
+      /**
+       * If keepAlive is true, you must remember to manually close the connection.
+       */
+      if (!this.config.keepAlive && this.store.isOpen) {
+        void await this.disconnect();
+      }
     }
   }
 }

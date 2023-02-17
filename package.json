@@ -21,7 +21,9 @@
     "build:watch": "npm run build -- --watch",
     "prepublishOnly": "npm run build",
     "test": "jest",
-    "test:watch": "npm run test -- --watch"
+    "test:watch": "npm run test -- --watch",
+    "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
+    "publish:beta": "npm publish --scope @hirespace --tag beta"
   },
   "optionalDependencies": {
     "@upstash/redis": "^1.20.0",
