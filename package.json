@@ -1,6 +1,6 @@
 {
   "name": "@hirespace/hs-cache-manager",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
@@ -20,10 +20,10 @@
     "build": "tsc",
     "build:watch": "npm run build -- --watch",
     "prepublishOnly": "npm run build",
-    "test": "jest",
-    "test:watch": "npm run test -- --watch",
     "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
-    "publish:beta": "npm publish --scope @hirespace --tag beta"
+    "publish:beta": "npm publish --scope @hirespace --tag beta",
+    "test": "jest",
+    "test:watch": "npm run test -- --watch"
   },
   "optionalDependencies": {
     "@upstash/redis": "^1.20.0",

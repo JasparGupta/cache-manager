@@ -2,17 +2,17 @@
 import isPromise from '../support/is-promise';
 import { Config, Promisable } from './types';
 
-export default abstract class CacheDriver<Store = any, C extends Config = Config> {
-  protected config: C;
+export default abstract class CacheDriver<Store = any> {
+  protected config: Config;
 
   protected store: Store;
 
-  constructor(store: Store = null as unknown as Store, config: Partial<C> = {}) {
+  constructor(store: Store = null as unknown as Store, config: Partial<Config> = {}) {
     this.store = store;
     this.config = {
       prefix: '',
       ...config,
-    } as C;
+    };
   }
 
   /**

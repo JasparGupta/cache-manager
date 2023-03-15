@@ -1,13 +1,12 @@
-import { ClientClosedError } from '@redis/client/dist/lib/errors';
-import type { createClient } from 'redis';
-import CacheDriver from '../driver';
+import { ClientClosedError, type createClient } from 'redis';
+import CacheDriver from './driver';
 import { Config } from './types';
 
-type RedisInstance = ReturnType<typeof createClient>;
+export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
+  private timer?: NodeJS.Timer;
 
-export default class RedisDriver<Client extends RedisInstance> extends CacheDriver<Client, Config> {
   constructor(client: Client, config: Partial<Config> = {}) {
-    super(client, { keepAlive: false, ...config });
+    super(client, config);
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
@@ -16,16 +15,6 @@ export default class RedisDriver<Client extends RedisInstance> extends CacheDriv
 
       return count > 1 ? this.store.decrBy(sanatised, count) : this.store.decr(sanatised);
     });
-  }
-
-  public async disconnect(): Promise<void> {
-    try {
-      return await this.store.quit();
-    } catch (e) {
-      if (!(e instanceof ClientClosedError)) {
-        throw e;
-      }
-    }
   }
 
   public async flush(): Promise<void> {
@@ -85,48 +74,40 @@ export default class RedisDriver<Client extends RedisInstance> extends CacheDriv
   }
 
   public async remember<T = any>(key: string | number, callback: () => T, expires: Date | null = null): Promise<T> {
-    return this.run(async () => {
-      const cache = await this.get(key);
+    const cache = await this.get(key);
 
-      return cache !== null ? cache : this.put(key, await callback(), expires);
-    });
+    return cache !== null ? cache : this.put(key, await callback(), expires);
   }
 
   public async remove(key: string | number): Promise<void> {
     await this.connect(() => this.store.del(this.key(key)));
   }
 
-  public async run<T>(callback: () => T): Promise<T> {
-    this.config.keepAlive = true;
-
-    try {
-      return await this.connect(callback);
-    } finally {
-      this.config.keepAlive = false;
-      void await this.disconnect();
-    }
-  }
-
-  public setConfig(config: Partial<Config>): this {
-    this.config = { ...this.config, ...config };
-
-    return this;
-  }
-
   private async connect<T>(callback: () => T): Promise<T> {
+    clearTimeout(this.timer);
+
     if (!this.store.isOpen) {
       void await this.store.connect();
     }
 
-    try {
-      return await callback();
-    } finally {
-      /**
-       * If keepAlive is true, you must remember to manually close the connection.
-       */
-      if (!this.config.keepAlive && this.store.isOpen) {
-        void await this.disconnect();
+    const result = await callback();
+
+    this.initDisconnect();
+
+    return result;
+  }
+
+  private initDisconnect() {
+    this.timer = setTimeout(() => {
+      if (this.store.isOpen) {
+        try {
+          this.store.quit();
+        } catch (e) {
+          if (e instanceof ClientClosedError) return;
+
+          throw e;
+        }
       }
-    }
+    }, 5e3);
   }
 }
