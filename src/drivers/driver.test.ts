@@ -154,7 +154,11 @@ describe('driver', () => {
 
     test.each<[string, string]>([
       ['', 'test'],
-      ['prefix', 'prefix.test']
+      ['prefix', 'prefix.test'],
+      ['prefix.', 'prefix.test'],
+      ['prefix:', 'prefix:test'],
+      ['prefix-', 'prefix-test'],
+      ['prefix_', 'prefix_test'],
     ])('applies prefix to given key', (prefix, expected) => {
       // @ts-ignore
       driver.config.prefix = prefix;
