@@ -88,6 +88,12 @@ export default abstract class CacheDriver<Store = any> {
   public abstract remove(key: string): void;
 
   protected key(key: string | number): string {
-    return this.config.prefix ? `${this.config.prefix}.${key}` : key.toString();
+    if (!this.config.prefix) {
+      return key.toString();
+    }
+
+    return /[^a-z0-9.]$/i.test(this.config.prefix)
+      ? `${this.config.prefix}.${key}`
+      : this.config.prefix + key.toString();
   }
 }
