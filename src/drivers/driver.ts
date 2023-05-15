@@ -92,7 +92,7 @@ export default abstract class CacheDriver<Store = any> {
       return key.toString();
     }
 
-    return /[^a-z0-9.]$/i.test(this.config.prefix)
+    return /[a-z0-9]$/i.test(this.config.prefix)
       ? `${this.config.prefix}.${key}`
       : this.config.prefix + key.toString();
   }
