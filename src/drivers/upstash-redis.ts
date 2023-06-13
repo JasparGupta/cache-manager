@@ -18,7 +18,9 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     await this.store.flushall();
   }
 
-  public async get<T = any>(key: string | number, fallback: T | null = null): Promise<T | null> {
+  public async get<T>(key: string | number): Promise<T | null>;
+  public async get<T, U extends T = T>(key: string | number, fallback: T): Promise<U>;
+  public async get<T = unknown>(key: string | number, fallback: T = null as T) {
     if (await this.has(key)) {
       const cache = await this.store.get(this.key(key));
 
@@ -32,7 +34,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     return fallback;
   }
 
-  public async getMany<T = any>(keys: string[] | number[], fallback: T[] = []): Promise<T[]> {
+  public async getMany<T = unknown>(keys: string[] | number[], fallback: T[] = []): Promise<T[]> {
     const response = await this.api().mget(...keys.map(this.key));
 
     return response.length > 0
@@ -52,7 +54,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     return count > 1 ? this.store.incrby(sanatised, count) : this.store.incr(sanatised);
   }
 
-  public async put<T = any>(key: string | number, value: T, date: Date | null = null): Promise<T> {
+  public async put<T>(key: string | number, value: T, date: Date | null = null): Promise<T> {
     const sanatised = this.key(key);
 
     await this.store.set(sanatised, JSON.stringify(value));
@@ -60,12 +62,6 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     if (date) await this.store.expireat(sanatised, Math.floor(date.getTime() / 1000));
 
     return value;
-  }
-
-  public async remember<T = any>(key: string | number, callback: () => T, expires: Date | null = null): Promise<T> {
-    const cache = await this.get(key);
-
-    return cache !== null ? cache : this.put(key, await callback(), expires);
   }
 
   public async remove(key: string | number): Promise<void> {

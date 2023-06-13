@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-explicit-any,class-methods-use-this,@typescript-eslint/no-unused-vars */
 import CacheDriver from './driver';
+import { Promisable } from './types';
 
 class TestDriver extends CacheDriver<any> {
   flush(): void {
     //
   }
 
-  get<T>(key: string | number, fallback: T | undefined): Promise<T | null> | T | null {
+  get<T>(key: string | number): Promisable<T | null>;
+  get<T>(key: string | number, fallback: T): Promisable<T>;
+  get<T>(key: string | number, fallback: T = null as T): Promisable<T | null> {
     return null;
   }
 

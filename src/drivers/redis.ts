@@ -21,7 +21,9 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     await this.connect(() => this.store.flushAll());
   }
 
-  public async get<T = any>(key: string | number, fallback: T | null = null): Promise<T | null> {
+  public async get<T>(key: string | number): Promise<T | null>;
+  public async get<T, U extends T = T>(key: string | number, fallback: T): Promise<U>;
+  public async get<T>(key: string | number, fallback: T = null as T) {
     return this.connect(async () => {
       if (await this.has(key)) {
         const cache = await this.store.get(this.key(key));
@@ -61,7 +63,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     });
   }
 
-  public async put<T = any>(key: string | number, value: T, date: Date | null = null): Promise<T> {
+  public async put<T>(key: string | number, value: T, date: Date | null = null): Promise<T> {
     return this.connect(async () => {
       const sanatised = this.key(key);
 
@@ -71,12 +73,6 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
       return value;
     });
-  }
-
-  public async remember<T = any>(key: string | number, callback: () => T, expires: Date | null = null): Promise<T> {
-    const cache = await this.get(key);
-
-    return cache !== null ? cache : this.put(key, await callback(), expires);
   }
 
   public async remove(key: string | number): Promise<void> {

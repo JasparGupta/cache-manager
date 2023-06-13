@@ -11,7 +11,9 @@ class StorageDriver extends CacheDriver<Storage> {
     this.store.clear();
   }
 
-  public get<T = any>(key: string, fallback: T | null = null): T | null {
+  public get<T>(key: string): T | null;
+  public get<T, U extends T = T>(key: string, fallback: T): U;
+  public get<T>(key: string, fallback: T = null as T) {
     if (this.has(key)) {
       try {
         const cache = this.store.getItem(this.key(key)) as string;
@@ -32,7 +34,7 @@ class StorageDriver extends CacheDriver<Storage> {
     return !!cache && !this.expired(JSON.parse(cache));
   }
 
-  public put<T = any>(key: string, value: T, expires: Date | null = null): T {
+  public put<T>(key: string, value: T, expires: Date | null = null): T {
     this.store.setItem(this.key(key), JSON.stringify({ expires: expires ? expires.getTime() : null, key, value }));
 
     return value;
