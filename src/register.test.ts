@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import PlainObjectDriver from './drivers/plain-object';
+import MapDriver from './drivers/map';
 import register from './register';
 
 describe('register', () => {
@@ -17,7 +18,7 @@ describe('register', () => {
   test('returns the cache driver for the given key', () => {
     const drivers = {
       foo: new PlainObjectDriver(),
-      bar: new PlainObjectDriver(),
+      bar: new MapDriver(),
     };
 
     const cache = register(drivers, 'foo');
@@ -29,7 +30,7 @@ describe('register', () => {
   test('returns the fallback cache driver if no key is provided', () => {
     const drivers = {
       foo: new PlainObjectDriver(),
-      bar: new PlainObjectDriver(),
+      bar: new MapDriver(),
     };
 
     const cache = register(drivers, 'bar');
@@ -41,7 +42,7 @@ describe('register', () => {
   test('throws an error if no cache driver is found for the given key', () => {
     const drivers = {
       foo: new PlainObjectDriver(),
-      bar: new PlainObjectDriver(),
+      bar: new MapDriver(),
     };
 
     const cache = register(drivers, 'bar');
