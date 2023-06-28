@@ -45,8 +45,7 @@ class StorageDriver extends CacheDriver<Storage> {
   public popByPrefix(keyPrefix: string, count: number): number {
     console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
     console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
-    const entries = Object
-    .entries(this.store);
+    const entries = Object.entries(this.store);
     console.log(`popByPrefix entries ${JSON.stringify(entries)}`);
     const byExpire = entries.filter(([_key, item]) => !!item.expires);
     console.log(`popByPrefix byExpire ${JSON.stringify(byExpire)}`);
