@@ -42,12 +42,12 @@ class StorageDriver extends CacheDriver<Storage> {
    /**
    * Remove older items based on a key prefix.
    */
-  public popByPrefix(prefix: string, number: 1): number {
+  public popByPrefix(prefix: string, count: number): number {
     return Object
     .entries(this.store)
     .filter(([_key, item]) => !!item.expires)
     .sort(([_keyA, itemA], [_keyB, itemB]) => itemA.expires - itemB.expires)
-    .slice(0, 2)
+    .slice(0, count)
     .reduce((popped, [key]) => {
       try {
         /**
