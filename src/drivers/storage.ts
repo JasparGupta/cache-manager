@@ -43,6 +43,17 @@ class StorageDriver extends CacheDriver<Storage> {
   * Remove older items based on a key prefix.
   */
   public popByPrefix(keyPrefix: string, count: number): number {
+    console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
+    console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
+    const entries = Object
+    .entries(this.store);
+    console.log(`popByPrefix entries ${JSON.stringify(entries)}`);
+    const byExpire = entries.filter(([_key, item]) => !!item.expires);
+    console.log(`popByPrefix byExpire ${JSON.stringify(byExpire)}`);
+    const byStarts = entries.filter(([key]) => key.startsWith(keyPrefix));
+    console.log(`popByPrefix byStarts ${JSON.stringify(byStarts)}`);
+    const bySlice = entries.slice(0, count);
+    console.log(`popByPrefix bySlice ${JSON.stringify(bySlice)}`);
     return Object
       .entries(this.store)
       .filter(([_key, item]) => !!item.expires)
