@@ -42,25 +42,27 @@ class StorageDriver extends CacheDriver<Storage> {
   /**
   * Remove older items based on a key prefix.
   */
-  public popByPrefix(keyPrefix: string, count: number): number {
-    console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
-    console.log(`popByPrefix keyPrefix ${keyPrefix} count ${count}`);
+  public pop(count: number): number {
+    console.log(`popByPrefix count ${count}`);
+    console.log(`popByPrefix count ${count}`);
     const entries = Object.entries(this.store);
     console.log(`popByPrefix entries ${JSON.stringify(entries)}`);
-    const byExpire = entries.filter(([_key, item]) => !!item.expires);
-    console.log(`popByPrefix byExpire ${JSON.stringify(byExpire)}`);
-    const byStarts = entries.filter(([key]) => key.startsWith(keyPrefix));
+    const byStarts = entries.filter(([key]) => key.startsWith(this.config.prefix));
     console.log(`popByPrefix byStarts ${JSON.stringify(byStarts)}`);
-    const bySlice = entries.slice(0, count);
+    const byParse = byStarts.map(([key, item]) => [key, JSON.parse(item)]);
+    console.log(`popByPrefix byParse ${JSON.stringify(byParse)}`);
+    const byExpired = byParse.filter(([_key, item]) => !!item.expires);
+    console.log(`popByPrefix byExpired ${JSON.stringify(byExpired)}`);
+    const bySlice = byExpired.slice(0, count);
     console.log(`popByPrefix bySlice ${JSON.stringify(bySlice)}`);
     return Object
       .entries(this.store)
+      .filter(([key]) => key.startsWith(this.config.prefix))
+      .map(([key, item]) => [key, JSON.parse(item)])
       .filter(([_key, item]) => !!item.expires)
-      .filter(([key]) => key.startsWith(keyPrefix))
-      .sort(([_keyA, itemA], [_keyB, itemB]) => itemA.expires - itemB.expires)
       .slice(0, count)
       .reduce((popped, [key]) => {
-        console.log(`keyPrefix ${keyPrefix}`)
+        console.log(`keyPrefix ${this.config.prefix}`)
         try {
           /**
            * As we are iterating through all the entries of localStorage we know that
