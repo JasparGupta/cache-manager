@@ -48,7 +48,7 @@ class StorageDriver extends CacheDriver<Storage> {
        * As we are iterating through all the entries of localStorage we know that
        * if `this.has()` returns false it is because the item has expired.
        */
-      if (!this.has(key.slice(this.config.prefix.length))) {
+      if (!this.has(key.slice(this.key('').length))) {
         return pruned + 1;
       }
 

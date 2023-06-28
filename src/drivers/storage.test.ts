@@ -121,7 +121,10 @@ describe.each<[string, StorageDriver]>([
   });
 
   describe('pruned', () => {
-    test('removes expired cache items', () => {
+    test.each(['', 'prefix', 'prefix-'])('removes expired cache items', (prefix) => {
+      // @ts-ignore
+      driver.config.prefix = prefix;
+
       expect(driver.prune()).toBe(0);
 
       driver.put('foo1', 'bar', addMinutes(Date.now(), 10));
