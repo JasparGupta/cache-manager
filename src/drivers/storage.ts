@@ -50,6 +50,7 @@ class StorageDriver extends CacheDriver<Storage> {
       .sort(([_keyA, itemA], [_keyB, itemB]) => itemA.expires - itemB.expires)
       .slice(0, count)
       .reduce((popped, [key]) => {
+        console.log(`keyPrefix ${keyPrefix}`)
         try {
           /**
            * As we are iterating through all the entries of localStorage we know that
