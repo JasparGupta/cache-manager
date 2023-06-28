@@ -45,11 +45,20 @@ class StorageDriver extends CacheDriver<Storage> {
   public prune(): number {
     return Object.entries(this.store).reduce((pruned, [key]) => {
       /**
-       * As we are iterating through all the entries of localStorage we know that
-       * if `this.has()` returns false it is because the item has expired.
+       * The underlying logic performs a JSON.parse(), unless a prefix has been provided this will iterate
+       * over and prune all local/session storage items whether cached via the cache manager or not.
+       * So wrapping in try/catch just in case we encounter a non JSON parsable value.
        */
-      if (!this.has(key.slice(this.key('').length))) {
-        return pruned + 1;
+      try {
+        /**
+         * As we are iterating through all the entries of localStorage we know that
+         * if `this.has()` returns false it is because the item has expired.
+         */
+        if (!this.has(key.slice(this.key('').length))) {
+          return pruned + 1;
+        }
+      } catch (e) {
+        // Noop.
       }
 
       return pruned;
@@ -60,6 +69,10 @@ class StorageDriver extends CacheDriver<Storage> {
     this.store.removeItem(this.key(key));
   }
 
+  /**
+   * Determines if the given cache item has expired.
+   * If it has expired it removes the cache item from storage.
+   */
   private expired(item: Cached): boolean {
     if (!item.expires) {
       return false;
