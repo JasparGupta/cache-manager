@@ -39,31 +39,31 @@ class StorageDriver extends CacheDriver<Storage> {
     return value;
   }
 
-   /**
-   * Remove older items based on a key prefix.
-   */
+  /**
+  * Remove older items based on a key prefix.
+  */
   public popByPrefix(keyPrefix: string, count: number): number {
     return Object
-    .entries(this.store)
-    .filter(([_key, item]) => !!item.expires)
-    .filter(([key]) => key.startsWith(keyPrefix))
-    .sort(([_keyA, itemA], [_keyB, itemB]) => itemA.expires - itemB.expires)
-    .slice(0, count)
-    .reduce((popped, [key]) => {
-      try {
-        /**
-         * As we are iterating through all the entries of localStorage we know that
-         * if `this.has()` returns false it is because the item has expired.
-         */
-        if (!this.has(key.slice(this.key('').length))) {
-          return popped + 1;
+      .entries(this.store)
+      .filter(([_key, item]) => !!item.expires)
+      .filter(([key]) => key.startsWith(keyPrefix))
+      .sort(([_keyA, itemA], [_keyB, itemB]) => itemA.expires - itemB.expires)
+      .slice(0, count)
+      .reduce((popped, [key]) => {
+        try {
+          /**
+           * As we are iterating through all the entries of localStorage we know that
+           * if `this.has()` returns false it is because the item has expired.
+           */
+          if (!this.has(key.slice(this.key('').length))) {
+            return popped + 1;
+          }
+        } catch (e) {
+          // Noop.
         }
-      } catch (e) {
-        // Noop.
-      }
 
-      return popped;
-    }, 0);
+        return popped;
+      }, 0);
   }
 
   /**
