@@ -120,6 +120,20 @@ describe.each<[string, StorageDriver]>([
     });
   });
 
+  describe('pruned', () => {
+    test('removes expired cache items', () => {
+      expect(driver.prune()).toBe(0);
+
+      driver.put('foo1', 'bar', addMinutes(Date.now(), 10));
+      driver.put('foo2', 'bar', subMinutes(Date.now(), 10));
+      driver.put('foo3', 'bar', subMinutes(Date.now(), 10));
+      driver.put('foo4', 'bar', addMinutes(Date.now(), 10));
+      driver.put('foo5', 'bar', subMinutes(Date.now(), 10));
+
+      expect(driver.prune()).toBe(3);
+    });
+  });
+
   describe('remove', () => {
     test('removes the given key from the cache', () => {
       expect(driver.get('foo')).toBeNull();
@@ -132,5 +146,5 @@ describe.each<[string, StorageDriver]>([
 
       expect(driver.get('foo')).toBeNull();
     });
-  })
+  });
 });

@@ -39,6 +39,23 @@ class StorageDriver extends CacheDriver<Storage> {
     return value;
   }
 
+  /**
+   * Remove expired cache items.
+   */
+  public prune(): number {
+    return Object.entries(this.store).reduce((pruned, [key]) => {
+      /**
+       * As we are iterating through all the entries of localStorage we know that
+       * if `this.has()` returns false it is because the item has expired.
+       */
+      if (!this.has(key.slice(this.config.prefix.length))) {
+        return pruned + 1;
+      }
+
+      return pruned;
+    }, 0);
+  }
+
   public remove(key: string): void {
     this.store.removeItem(this.key(key));
   }
