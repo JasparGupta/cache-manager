@@ -12,7 +12,7 @@ class StorageDriver extends CacheDriver<Storage> {
 
   public get<T>(key: string): T | null;
   public get<T, U extends T = T>(key: string, fallback: T): U;
-  public get<T>(key: string, fallback: T = null as T) {
+  public get<T>(key: string, fallback: T = null as unknown as T) {
     if (this.has(key)) {
       try {
         const cache = this.store.getItem(this.key(key)) as string;

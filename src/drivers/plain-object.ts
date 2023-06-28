@@ -12,7 +12,7 @@ export default class PlainObjectDriver extends CacheDriver<Record<string, Cached
 
   public get<T>(key: string): T | null;
   public get<T, U extends T = T>(key: string, fallback: T): U;
-  public get<T>(key: string, fallback: T = null as T) {
+  public get<T>(key: string, fallback: T = null as unknown as T) {
     return this.has(key) ? this.store[this.key(key)].value : fallback;
   }
 
