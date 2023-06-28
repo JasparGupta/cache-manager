@@ -1,9 +1,9 @@
 import * as nextCookies from 'cookies-next';
 import { CookieSerializeOptions } from 'cookie';
+import { OptionsType } from 'cookies-next/lib/types';
 import { Config as BaseConfig } from '../types';
 import JSONValue from '../types/json';
 import CacheDriver from '../driver';
-import { OptionsType } from 'cookies-next/lib/types';
 import DEFAULT_COOKIE_OPTIONS from './default-cookie-options';
 import { decryptCookie, encryptCookie } from './encrypt-cookie';
 
@@ -13,7 +13,6 @@ interface Config extends BaseConfig, CookieSerializeOptions {
 }
 
 export default class NextCookieDriver extends CacheDriver<typeof nextCookies> {
-
   #encrypt: boolean;
 
   #encryptionKey: string;
@@ -29,11 +28,11 @@ export default class NextCookieDriver extends CacheDriver<typeof nextCookies> {
     this.#encryptionKey = encryptionKey ?? process.env.NEXT_PUBLIC_COOKIE_ENCRYPTION_KEY ?? '';
   }
 
-  public flush(options?: OptionsType): void {
+  public flush(_options?: OptionsType): void {
     Object.keys(this.getAll()).forEach((name) => this.remove(name));
   }
 
-  public get<T = JSONValue>(key: string, fallback: T | null = null, options?: OptionsType): T | null {
+  public get<T = JSONValue>(key: string, fallback: T | null = null, options: OptionsType = {}): T | null {
     if (this.has(key)) {
       try {
         const cookie = this.store.getCookie(this.key(key), options) as string;
@@ -71,8 +70,7 @@ export default class NextCookieDriver extends CacheDriver<typeof nextCookies> {
 
     this.store.setCookie(this.key(key), cookie, expires
       ? { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options, expires }
-      : { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options }
-    );
+      : { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options });
 
     return value;
   }

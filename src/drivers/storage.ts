@@ -1,4 +1,3 @@
-import { getCookie } from 'cookies-next';
 import CacheDriver from './driver';
 import { Cached } from './types';
 

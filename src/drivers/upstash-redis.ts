@@ -3,7 +3,6 @@ import CacheDriver from './driver';
 import { Config } from './types';
 
 export default class UpstashRedisDriver<Client extends Redis> extends CacheDriver<Client> {
-
   constructor(client: Client, config: Partial<Config> = {}) {
     super(client, config);
   }
