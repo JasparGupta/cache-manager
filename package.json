@@ -14,17 +14,16 @@
     "dist/**/*"
   ],
   "scripts": {
+    "test": "jest",
+    "test:watch": "npm run test -- --watch",
     "lint": "eslint 'src/**' --ext .ts --quiet",
-    "preclean": "npm test",
     "clean": "rm -rf ./dist",
-    "prebuild": "npm run clean",
+    "prebuild": "npm run clean && npm run test && npm run lint",
     "build": "tsc",
     "build:watch": "npm run build -- --watch",
     "prepublishOnly": "npm run build",
     "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
-    "publish:beta": "npm publish --scope @hirespace --tag beta",
-    "test": "jest",
-    "test:watch": "npm run test -- --watch"
+    "publish:beta": "npm publish --scope @hirespace --tag beta"
   },
   "optionalDependencies": {
     "@upstash/redis": "^1.20.0",
