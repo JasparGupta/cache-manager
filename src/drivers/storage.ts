@@ -42,12 +42,12 @@ class StorageDriver extends CacheDriver<Storage> {
   /**
   * Remove older items based on a key prefix.
   */
-  public pop(count: number): number {
+  public popByPrefix(prefix: string, count: number): number {
     console.log(`popByPrefix count ${count}`);
     console.log(`popByPrefix count ${count}`);
     const entries = Object.entries(this.store);
     console.log(`popByPrefix entries ${JSON.stringify(entries)}`);
-    const byStarts = entries.filter(([key]) => key.startsWith(this.config.prefix));
+    const byStarts = entries.filter(([key]) => key.startsWith(prefix));
     console.log(`popByPrefix byStarts ${JSON.stringify(byStarts)}`);
     const byParse = byStarts.map(([key, item]) => [key, JSON.parse(item)]);
     console.log(`popByPrefix byParse ${JSON.stringify(byParse)}`);
@@ -57,12 +57,12 @@ class StorageDriver extends CacheDriver<Storage> {
     console.log(`popByPrefix bySlice ${JSON.stringify(bySlice)}`);
     return Object
       .entries(this.store)
-      .filter(([key]) => key.startsWith(this.config.prefix))
+      .filter(([key]) => key.startsWith(prefix))
       .map(([key, item]) => [key, JSON.parse(item)])
       .filter(([_key, item]) => !!item.expires)
       .slice(0, count)
       .reduce((popped, [key]) => {
-        console.log(`keyPrefix ${this.config.prefix}`)
+        console.log(`keyPrefix ${prefix}`)
         try {
           /**
            * As we are iterating through all the entries of localStorage we know that
