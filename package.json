@@ -1,6 +1,6 @@
 {
   "name": "@hirespace/hs-cache-manager",
-  "version": "2.4.4-beta.2",
+  "version": "2.4.4-beta.3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
