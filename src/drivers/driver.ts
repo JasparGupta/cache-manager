@@ -7,7 +7,7 @@ export default abstract class CacheDriver<Store = any> {
 
   protected store: Store;
 
-  constructor(store: Store = null as unknown as Store, config: Partial<Config> = {}, prefix: string = '') {
+  constructor(store: Store = null as unknown as Store, config: Partial<Config> = {}, prefix = '') {
     this.store = store;
     this.config = {
       prefix,
