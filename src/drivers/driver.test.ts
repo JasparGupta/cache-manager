@@ -9,7 +9,7 @@ class TestDriver extends CacheDriver<any> {
 
   get<T>(key: string | number): Promisable<T | null>;
   get<T>(key: string | number, fallback: T): Promisable<T>;
-  get<T>(key: string | number, fallback: T = null as T): Promisable<T | null> {
+  get<T>(key: string | number, fallback: T = null as unknown as T): Promisable<T | null> {
     return null;
   }
 

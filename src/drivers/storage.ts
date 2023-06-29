@@ -12,7 +12,7 @@ class StorageDriver extends CacheDriver<Storage> {
 
   public get<T>(key: string): T | null;
   public get<T, U extends T = T>(key: string, fallback: T): U;
-  public get<T>(key: string, fallback: T = null as T) {
+  public get<T>(key: string, fallback: T = null as unknown as T) {
     if (this.has(key)) {
       try {
         const cache = this.store.getItem(this.key(key)) as string;
@@ -37,6 +37,33 @@ class StorageDriver extends CacheDriver<Storage> {
     this.store.setItem(this.key(key), JSON.stringify({ expires: expires ? expires.getTime() : null, key, value }));
 
     return value;
+  }
+
+  /**
+  * Remove older items based on a key prefix.
+  */
+  public popByPrefix(prefix: string, count: number): number {
+    return Object
+      .entries(this.store)
+      .filter(([key]) => key.startsWith(prefix))
+      .map(([key, item]) => [key, JSON.parse(item)])
+      .filter(([_key, item]) => !!item.expires)
+      .slice(0, count)
+      .reduce((popped, [key]) => {
+        try {
+          /**
+           * As we are iterating through all the entries of localStorage we know that
+           * if `this.has()` returns false it is because the item has expired.
+           */
+          if (!this.has(key)) {
+            return popped + 1;
+          }
+        } catch (e) {
+          // Noop.
+        }
+
+        return popped;
+      }, 0);
   }
 
   /**

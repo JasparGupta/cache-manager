@@ -23,7 +23,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   public async get<T>(key: string | number): Promise<T | null>;
   public async get<T, U extends T = T>(key: string | number, fallback: T): Promise<U>;
-  public async get<T>(key: string | number, fallback: T = null as T) {
+  public async get<T>(key: string | number, fallback: T = null as unknown as T) {
     return this.connect(async () => {
       if (await this.has(key)) {
         const cache = await this.store.get(this.key(key));
