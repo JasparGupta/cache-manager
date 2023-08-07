@@ -1,9 +1,9 @@
 import CacheDriver from './driver';
-import { Cached } from './types';
+import { Cached, Config } from './types';
 
 class StorageDriver extends CacheDriver<Storage> {
-  constructor(protected store: Storage) {
-    super();
+  constructor(protected store: Storage, config: Partial<Config> = {}) {
+    super(store, config);
   }
 
   public flush(): void {
@@ -40,8 +40,8 @@ class StorageDriver extends CacheDriver<Storage> {
   }
 
   /**
-  * Remove older items based on a key prefix.
-  */
+   * Remove older items based on a key prefix.
+   */
   public popByPrefix(prefix: string, count: number): number {
     return Object
       .entries(this.store)
