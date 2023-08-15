@@ -63,7 +63,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     });
   }
 
-  public async put<T>(key: string | number, value: T, date: Date | null = null): Promise<T> {
+  public async put<T>(key: string | number, value: T, date: Date | null = this.config.ttl): Promise<T> {
     return this.connect(async () => {
       const sanatised = this.key(key);
 

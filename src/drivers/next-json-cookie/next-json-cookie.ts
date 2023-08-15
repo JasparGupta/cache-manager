@@ -63,14 +63,19 @@ export default class NextCookieDriver extends CacheDriver<typeof nextCookies> {
     return this.store.hasCookie(this.key(key), options);
   }
 
-  public put<T>(key: string, value: T, expires?: Date | null, options?: OptionsType): T {
+  // eslint-disable-next-line default-param-last
+  public put<T>(key: string, value: T, expires: Date | null = this.config.ttl, options?: OptionsType): T {
     const cookie = this.#encrypt
       ? encryptCookie(value as unknown as JSONValue, this.#encryptionKey)
       : JSON.stringify(value);
 
-    this.store.setCookie(this.key(key), cookie, expires
-      ? { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options, expires }
-      : { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options });
+    this.store.setCookie(
+      this.key(key),
+      cookie,
+      expires
+        ? { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options, expires }
+        : { ...DEFAULT_COOKIE_OPTIONS, ...this.config, ...options }
+    );
 
     return value;
   }

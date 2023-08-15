@@ -13,7 +13,7 @@ class TestDriver extends CacheDriver<any> {
     return null;
   }
 
-  put<T>(key: string | number, value: T, date: Date | null | undefined): Promise<T> | T {
+  put<T>(key: string | number, value: T, date: Date | null = this.config.ttl): Promise<T> | T {
     return value;
   }
 

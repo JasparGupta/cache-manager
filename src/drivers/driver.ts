@@ -11,6 +11,7 @@ export default abstract class CacheDriver<Store = any> {
     this.store = store;
     this.config = {
       prefix: '',
+      ttl: null,
       ...config,
     };
   }
@@ -71,7 +72,7 @@ export default abstract class CacheDriver<Store = any> {
   /**
    * Callback return-type should be a JSON stringify-able value.
    */
-  public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = null): Promisable<T> {
+  public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = this.config.ttl): Promisable<T> {
     const cache = this.get<T>(key);
 
     const handle = (result: T | null): Promisable<T> => {

@@ -24,7 +24,7 @@ export default class MapDriver extends CacheDriver<Map<string, Cached>> {
     return value;
   }
 
-  public put<T>(key: string, value: T, expires: Date | null = null): T {
+  public put<T>(key: string, value: T, expires: Date | null = this.config.ttl): T {
     this.store.set(this.key(key), { expires, key, value });
 
     return value;
