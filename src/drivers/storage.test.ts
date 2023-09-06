@@ -91,17 +91,25 @@ describe.each<[string, StorageDriver]>([
 
   describe('get', () => {
     test('returns "null" if no cache is found', () => {
-      expect(driver.get('foo')).toBeNull();
+      expect(driver.get<string>('foo')).toBeNull();
     });
 
     test('returns given fallback value if no cache is found', () => {
-      expect(driver.get('foo', 'baz')).toBe('baz');
+      expect(driver.get<string>('foo', 'baz')).toBe('baz');
+    });
+
+    test('returns given fallback callback value if no cache is found', () => {
+      const fallback = jest.fn(() => 'baz');
+      expect(driver.get<string>('foo', fallback)).toBe('baz');
+      expect(fallback).toHaveBeenCalled();
     });
 
     test('returns cache value if key exists', () => {
       driver.put('foo', 'bar');
 
-      expect(driver.get('foo')).toBe('bar');
+      const fallback = jest.fn(() => 'baz');
+      expect(driver.get('foo', fallback)).toBe('bar');
+      expect(fallback).not.toHaveBeenCalled();
     });
 
     test('returns null/given fallback value if cache exists but has expired', () => {

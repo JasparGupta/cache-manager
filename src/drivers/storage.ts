@@ -1,3 +1,4 @@
+import valueOf from '../support/value-of';
 import CacheDriver from './driver';
 import { Cached, Config } from './types';
 
@@ -12,6 +13,7 @@ class StorageDriver extends CacheDriver<Storage> {
 
   public get<T>(key: string): T | null;
   public get<T, U extends T = T>(key: string, fallback: T): U;
+  public get<T, U extends T = T>(key: string, fallback: () => T): U;
   public get<T>(key: string, fallback: T = null as unknown as T) {
     if (this.has(key)) {
       try {
@@ -20,11 +22,11 @@ class StorageDriver extends CacheDriver<Storage> {
 
         return value;
       } catch (error) {
-        return fallback;
+        return valueOf(fallback);
       }
     }
 
-    return fallback;
+    return valueOf(fallback);
   }
 
   public has(key: string): boolean {

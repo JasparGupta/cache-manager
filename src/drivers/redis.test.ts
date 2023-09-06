@@ -50,6 +50,22 @@ describe('RedisDriver', () => {
       spyHas.mockRestore();
     });
 
+    test('returns given fallback callback value if given key is not found', async () => {
+      const { default: RedisDriver } = await import('./redis');
+      const driver = new RedisDriver(createClient());
+
+      // @ts-ignore
+      const spyConnect = jest.spyOn(driver, 'connect').mockImplementation(callback => callback());
+      const spyHas = jest.spyOn(driver, 'has').mockResolvedValue(false);
+      const fallback = jest.fn(async () => 'baz');
+
+      expect(await driver.get('foo', fallback)).toBe('baz');
+      expect(fallback).toHaveBeenCalled();
+
+      spyConnect.mockRestore();
+      spyHas.mockRestore();
+    });
+
     test('returns cache for given key', async () => {
       const expected = { test: true };
 
@@ -61,8 +77,10 @@ describe('RedisDriver', () => {
       const spyHas = jest.spyOn(driver, 'has').mockResolvedValue(true);
       // @ts-ignore
       const spyApiGet = jest.spyOn(driver.api(), 'get').mockResolvedValue(JSON.stringify(expected));
+      const fallback = jest.fn(async () => 'bar');
 
-      expect(await driver.get('foo')).toEqual(expected);
+      expect(await driver.get('foo', fallback)).toEqual(expected);
+      expect(fallback).not.toHaveBeenCalled();
 
       spyConnect.mockRestore();
       spyHas.mockRestore();
@@ -98,18 +116,14 @@ describe('RedisDriver', () => {
       // @ts-ignore
       const spySet = jest.spyOn(driver.api(), 'set').mockResolvedValue('OK');
       // @ts-ignore
-      const spyExpireAt = jest.spyOn(driver.api(), 'expireAt').mockResolvedValue('OK');
 
       const actual = await driver.put('foo', 'bar', expires);
 
       expect(actual).toBe('bar');
-      expect(spySet).toHaveBeenCalledWith('foo', JSON.stringify('bar'));
-
-      if (expires) expect(spyExpireAt).toHaveBeenCalledWith('foo', Math.floor(expires.getTime() / 1000));
+      expect(spySet).toHaveBeenCalledWith('foo', JSON.stringify('bar'), expires ? { PXAT: expires.getTime() } : {});
 
       spyConnect.mockRestore();
       spySet.mockRestore();
-      spyExpireAt.mockRestore();
     });
   });
 

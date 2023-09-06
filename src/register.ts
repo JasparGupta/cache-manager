@@ -1,12 +1,12 @@
 import type CacheDriver from './drivers/driver';
 
-interface Driver<Drivers extends Record<string, CacheDriver>, Fallback extends keyof Drivers> {
+interface Driver<Drivers extends Record<string, CacheDriver<unknown>>, Fallback extends keyof Drivers> {
   (): Drivers[Fallback],
   <Store extends keyof Drivers>(store: Store): Drivers[Store],
 }
 
 export default function register<
-  Drivers extends Record<string, CacheDriver>,
+  Drivers extends Record<string, CacheDriver<unknown>>,
   Fallback extends keyof Drivers
 >(drivers: Drivers, fallback: Fallback): Driver<Drivers, Fallback> {
   return function cache<Store extends keyof Drivers>(store?: Store) {

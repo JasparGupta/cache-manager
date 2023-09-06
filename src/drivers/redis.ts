@@ -1,6 +1,7 @@
 import { ClientClosedError, type createClient } from 'redis';
 import CacheDriver from './driver';
 import { Config } from './types';
+import valueOf from '../support/value-of';
 
 export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
   private timer?: NodeJS.Timer;
@@ -23,6 +24,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
 
   public async get<T>(key: string | number): Promise<T | null>;
   public async get<T, U extends T = T>(key: string | number, fallback: T): Promise<U>;
+  public async get<T, U extends T = T>(key: string | number, fallback: () => T): Promise<U>;
   public async get<T>(key: string | number, fallback: T = null as unknown as T) {
     return this.connect(async () => {
       if (await this.has(key)) {
@@ -35,7 +37,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
         }
       }
 
-      return fallback;
+      return valueOf(fallback);
     });
   }
 
@@ -63,13 +65,13 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     });
   }
 
-  public async put<T>(key: string | number, value: T, date: Date | null = this.config.ttl): Promise<T> {
+  public async put<T>(key: string | number, value: T, expires: Date | null = this.config.ttl): Promise<T> {
     return this.connect(async () => {
-      const sanatised = this.key(key);
-
-      await this.store.set(sanatised, JSON.stringify(value));
-
-      if (date) await this.store.expireAt(sanatised, Math.floor(date.getTime() / 1000));
+      void await this.store.set(
+        this.key(key),
+        JSON.stringify(value),
+        expires ? { PXAT: expires.getTime() } : {}
+      );
 
       return value;
     });

@@ -10,7 +10,7 @@ describe('UpstashRedisDriver', () => {
       token: ''
     });
   });
-  
+
   describe('flush', () => {
     test('removes all keys from redis', async () => {
       const { default: UpstashRedisDriver } = await import('./upstash-redis');
@@ -53,6 +53,20 @@ describe('UpstashRedisDriver', () => {
       spyHas.mockRestore();
     });
 
+    test('returns given fallback callback value if given key is not found', async () => {
+      const { default: UpstashRedisDriver } = await import('./upstash-redis');
+      const driver = new UpstashRedisDriver(client);
+
+      // @ts-ignore
+      const spyHas = jest.spyOn(driver, 'has').mockResolvedValue(false);
+      const fallback = jest.fn(async () => 'baz');
+
+      expect(await driver.get('foo', fallback)).toBe('baz');
+      expect(fallback).toHaveBeenCalled();
+
+      spyHas.mockRestore();
+    });
+
     test('returns cache for given key', async () => {
       const expected = { test: true };
 
@@ -63,8 +77,10 @@ describe('UpstashRedisDriver', () => {
       const spyHas = jest.spyOn(driver, 'has').mockResolvedValue(true);
       // @ts-ignore
       const spyApiGet = jest.spyOn(driver.api(), 'get').mockResolvedValue(JSON.stringify(expected));
+      const fallback = jest.fn(() => 'bar');
 
-      expect(await driver.get('foo')).toEqual(expected);
+      expect(await driver.get('foo', fallback)).toEqual(expected);
+      expect(fallback).not.toHaveBeenCalled();
 
       spyHas.mockRestore();
       spyApiGet.mockRestore();

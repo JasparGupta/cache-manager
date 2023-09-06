@@ -1,6 +1,7 @@
 import { type Redis } from '@upstash/redis';
 import CacheDriver from './driver';
 import { Config } from './types';
+import valueOf from '../support/value-of';
 
 export default class UpstashRedisDriver<Client extends Redis> extends CacheDriver<Client> {
   constructor(client: Client, config: Partial<Config> = {}) {
@@ -19,6 +20,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
 
   public async get<T>(key: string | number): Promise<T | null>;
   public async get<T, U extends T = T>(key: string | number, fallback: T): Promise<U>;
+  public async get<T, U extends T = T>(key: string | number, fallback: () => T): Promise<U>;
   public async get<T = unknown>(key: string | number, fallback: T = null as unknown as T) {
     if (await this.has(key)) {
       const cache = await this.store.get(this.key(key));
@@ -30,7 +32,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
       }
     }
 
-    return fallback;
+    return valueOf(fallback);
   }
 
   public async getMany<T = unknown>(keys: string[] | number[], fallback: T[] = []): Promise<T[]> {
