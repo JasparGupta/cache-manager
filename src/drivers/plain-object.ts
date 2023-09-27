@@ -24,8 +24,8 @@ export default class PlainObjectDriver extends CacheDriver<Record<string, Cached
     return !!this.store[sanatised] && !this.expired(this.store[sanatised]);
   }
 
-  public put<T>(key: string, value: T, expires: Date | null = this.config.ttl): T {
-    this.store[this.key(key)] = { expires, key, value };
+  public put<T>(key: string, value: T, expires: Date | null = null): T {
+    this.store[this.key(key)] = { expires: this.expires(expires), key, value };
 
     return value;
   }

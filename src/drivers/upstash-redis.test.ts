@@ -115,9 +115,11 @@ describe('UpstashRedisDriver', () => {
       const actual = await driver.put('foo', 'bar', expires);
 
       expect(actual).toBe('bar');
-      expect(spySet).toHaveBeenCalledWith('foo', JSON.stringify('bar'));
-
-      if (expires) expect(spyExpireAt).toHaveBeenCalledWith('foo', Math.floor(expires.getTime() / 1000));
+      expect(spySet).toHaveBeenCalledWith(
+        'foo',
+        JSON.stringify('bar'),
+        expires ? { pxat: expires.getTime() } : {}
+      );
 
       spySet.mockRestore();
       spyExpireAt.mockRestore();

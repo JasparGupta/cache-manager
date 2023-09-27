@@ -13,7 +13,7 @@ class TestDriver extends CacheDriver<any> {
     return null;
   }
 
-  put<T>(key: string | number, value: T, date: Date | null = this.config.ttl): Promise<T> | T {
+  put<T>(key: string | number, value: T, date: Date | null = null): Promise<T> | T {
     return value;
   }
 
@@ -143,6 +143,41 @@ describe('driver', () => {
 
       spyGet.mockRestore();
       spyPut.mockRestore();
+    });
+  });
+
+  describe('expires', () => {
+    test('returns null if given value is null and ttl is not set', () => {
+      // @ts-ignore
+      driver.config.ttl = null;
+
+      // @ts-ignore
+      expect(driver.expires(null)).toBeNull();
+    });
+
+    test('returns given value if not null', () => {
+      // @ts-ignore
+      driver.config.ttl = null;
+
+      const expires = new Date();
+
+      // @ts-ignore
+      expect(driver.expires(expires)).toBe(expires);
+    });
+
+    test('returns date of expiration if null is given and ttl is set', () => {
+      const seconds = 60;
+      // @ts-ignore
+      driver.config.ttl = seconds;
+
+      const expires = new Date();
+      const spyNow = jest.spyOn(Date, 'now').mockImplementation(() => expires.getTime());
+      const expected = expires.getTime() + (seconds * 1000);
+
+      // @ts-ignore
+      expect(driver.expires(null).getTime()).toBe(expected);
+
+      spyNow.mockRestore();
     });
   });
 

@@ -73,7 +73,7 @@ export default abstract class CacheDriver<Store> {
   /**
    * Callback return-type should be a JSON stringify-able value.
    */
-  public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = this.config.ttl): Promisable<T> {
+  public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = null): Promisable<T> {
     const cache = this.get<T>(key);
 
     const handle = (result: T | null): Promisable<T> => {
@@ -93,6 +93,12 @@ export default abstract class CacheDriver<Store> {
    * Remove an item from the cache.
    */
   public abstract remove(key: string): void;
+
+  protected expires(at: Date): Date;
+  protected expires(at: Date | null): Date | null;
+  protected expires(at: Date | null) {
+    return at ?? (this.config.ttl ? new Date(Date.now() + (this.config.ttl * 1000)) : null);
+  }
 
   protected key(key: string | number): string {
     if (!this.config.prefix) {

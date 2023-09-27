@@ -1,6 +1,8 @@
 import valueOf from '../support/value-of';
 import CacheDriver from './driver';
-import { Cached, Config } from './types';
+import type { Cached as BaseCached, Config } from './types';
+
+type Cached = Omit<BaseCached, 'expires'> & { expires: number | null };
 
 class StorageDriver extends CacheDriver<Storage> {
   constructor(protected store: Storage, config: Partial<Config> = {}) {
@@ -35,8 +37,12 @@ class StorageDriver extends CacheDriver<Storage> {
     return !!cache && !this.expired(JSON.parse(cache));
   }
 
-  public put<T>(key: string, value: T, expires: Date | null = this.config.ttl): T {
-    this.store.setItem(this.key(key), JSON.stringify({ expires: expires ? expires.getTime() : null, key, value }));
+  public put<T>(key: string, value: T, expires: Date | null = null): T {
+    this.store.setItem(this.key(key), JSON.stringify({
+      expires: expires ? this.expires(expires).getTime() : null,
+      key,
+      value
+    } as Cached));
 
     return value;
   }

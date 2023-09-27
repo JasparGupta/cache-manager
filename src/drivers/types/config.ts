@@ -1,4 +1,10 @@
 export default interface Config {
+  /**
+   * Cache key prefix.
+   */
   prefix: string,
-  ttl: Date | null,
+  /**
+   * Default number of seconds to cache for.
+   */
+  ttl: number | null,
 }

@@ -55,12 +55,12 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     return count > 1 ? this.store.incrby(sanatised, count) : this.store.incr(sanatised);
   }
 
-  public async put<T>(key: string | number, value: T, date: Date | null = this.config.ttl): Promise<T> {
-    const sanatised = this.key(key);
-
-    await this.store.set(sanatised, JSON.stringify(value));
-
-    if (date) await this.store.expireat(sanatised, Math.floor(date.getTime() / 1000));
+  public async put<T>(key: string | number, value: T, expires: Date | null = null): Promise<T> {
+    await this.store.set(
+      this.key(key),
+      JSON.stringify(value),
+      expires ? { pxat: this.expires(expires).getTime() } : {}
+    );
 
     return value;
   }
