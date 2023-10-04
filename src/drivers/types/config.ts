@@ -6,5 +6,5 @@ export default interface Config {
   /**
    * Default number of seconds to cache for.
    */
-  ttl: number | null,
+  ttl: number | (() => Date) | null,
 }

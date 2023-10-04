@@ -76,6 +76,28 @@ const asynchrounous = await cache().remember('cache.key', async () => {
 });
 ```
 
+### [Config](./src/drivers/types/config.ts)
+
+You can pass optional config to your cache drivers.
+
+ - `prefix` allows you to prefix your cache keys with the given value. By default it will place a dot (`.`) between the given prefix and the cache key. This will automatically be overridden if your prefix ends with a non-alphanumeric character.
+
+```
+// Config: { prefix: 'foo' }
+cache().put('bar', true); // => Cached under "foo.bar"
+
+// Config: { prefix: 'foo-' }
+cache().put('bar', true); // => Cached under "foo-bar"
+```
+
+ - `ttl` allows you to set a default cache time. By default all keys are cached indefinitely. It will accept either a `number` which represents the amount of seconds the key will be cached for. Or it will accept a `callback` which must return a `Date` instance of the time of expiration.
+
+```
+// Config: { ttl: 1000 * 60 * 5 } => Cache everything by default for 5 minutes.
+
+// Config: { ttl: () => endOfToday() } => Use date-fns function to cache everything by default until the end of the current day.
+```
+
 ## `RedisDriver`
 
 If you want to use the `RedisDriver` you'll have to `npm i redis` and create a [redis](https://www.npmjs.com/package/redis) client to pass to the driver yourself.

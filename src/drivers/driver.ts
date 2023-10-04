@@ -97,7 +97,12 @@ export default abstract class CacheDriver<Store> {
   protected expires(at: Date): Date;
   protected expires(at: Date | null): Date | null;
   protected expires(at: Date | null) {
-    return at ?? (this.config.ttl ? new Date(Date.now() + (this.config.ttl * 1000)) : null);
+    if (at) return at;
+    if (!this.config.ttl) return null;
+
+    return typeof this.config.ttl === 'function'
+      ? this.config.ttl()
+      : new Date(Date.now() + (this.config.ttl * 1000));
   }
 
   protected key(key: string | number): string {
