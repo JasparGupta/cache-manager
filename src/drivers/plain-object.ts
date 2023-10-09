@@ -1,3 +1,4 @@
+import valueOf from '../support/value-of';
 import CacheDriver from './driver';
 import { Cached, Config } from './types';
 
@@ -10,8 +11,11 @@ export default class PlainObjectDriver extends CacheDriver<Record<string, Cached
     this.store = {};
   }
 
-  public get<T = any>(key: string, fallback: T | null = null): T | null {
-    return this.has(key) ? this.store[this.key(key)].value : fallback;
+  public get<T>(key: string): T | null;
+  public get<T, U extends T = T>(key: string, fallback: T): U;
+  public get<T, U extends T = T>(key: string, fallback: () => T): U;
+  public get<T>(key: string, fallback: T = null as unknown as T) {
+    return this.has(key) ? this.store[this.key(key)].value : valueOf(fallback);
   }
 
   public has(key: string): boolean {
@@ -20,8 +24,8 @@ export default class PlainObjectDriver extends CacheDriver<Record<string, Cached
     return !!this.store[sanatised] && !this.expired(this.store[sanatised]);
   }
 
-  public put<T = any>(key: string, value: T, expires: Date | null = null): T {
-    this.store[this.key(key)] = { expires, key, value };
+  public put<T>(key: string, value: T, expires: Date | null = null): T {
+    this.store[this.key(key)] = { expires: this.expires(expires), key, value };
 
     return value;
   }

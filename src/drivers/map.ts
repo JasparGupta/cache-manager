@@ -1,3 +1,4 @@
+import valueOf from '../support/value-of';
 import { Cached, Config } from './types';
 import CacheDriver from './driver';
 
@@ -10,20 +11,27 @@ export default class MapDriver extends CacheDriver<Map<string, Cached>> {
     this.store.clear();
   }
 
-  public get<T>(key: string, fallback: T | null = null): T | null {
+  public get<T>(key: string): T | null;
+  public get<T, U extends T = T>(key: string, fallback: T): U;
+  public get<T, U extends T = T>(key: string, fallback: () => T): U;
+  public get<T>(key: string, fallback = null as unknown as T) {
     const cached = this.store.get(this.key(key));
 
-    if (!cached) return fallback;
+    if (!cached) return valueOf(fallback);
 
     const { expires, value } = cached;
 
-    if (expires && expires <= new Date()) return fallback;
+    if (expires && expires <= new Date()) {
+      this.remove(key);
+
+      return valueOf(fallback);
+    }
 
     return value;
   }
 
   public put<T>(key: string, value: T, expires: Date | null = null): T {
-    this.store.set(this.key(key), { expires, key, value });
+    this.store.set(this.key(key), { expires: this.expires(expires), key, value });
 
     return value;
   }

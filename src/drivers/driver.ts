@@ -2,7 +2,7 @@
 import isPromise from '../support/is-promise';
 import { Config, Promisable } from './types';
 
-export default abstract class CacheDriver<Store = any> {
+export default abstract class CacheDriver<Store> {
   protected config: Config;
 
   protected store: Store;
@@ -11,6 +11,7 @@ export default abstract class CacheDriver<Store = any> {
     this.store = store;
     this.config = {
       prefix: '',
+      ttl: null,
       ...config,
     };
   }
@@ -39,7 +40,9 @@ export default abstract class CacheDriver<Store = any> {
   /**
    * Get item from cache.
    */
-  public abstract get<T = any>(key: string | number, fallback?: T): Promisable<T | null>;
+  public abstract get<T>(key: string | number): Promisable<T | null>;
+  public abstract get<T, U extends T = T>(key: string | number, fallback: T): Promisable<U>;
+  public abstract get<T, U extends T = T>(key: string | number, fallback: () => Promisable<T>): Promisable<U>;
 
   /**
    * Return whether item exists in the cache.
@@ -70,16 +73,20 @@ export default abstract class CacheDriver<Store = any> {
   /**
    * Callback return-type should be a JSON stringify-able value.
    */
-  public remember<T = any>(key: string | number, callback: () => T, expires: Date | null = null): Promisable<T> {
-    const cache = this.get(key);
+  public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = null): Promisable<T> {
+    const cache = this.get<T>(key);
 
-    if (cache !== null) return cache;
+    const handle = (result: T | null): Promisable<T> => {
+      if (result !== null) return result;
 
-    const value = callback();
+      const value = callback();
 
-    return isPromise(value)
-      ? value.then(resolved => this.put(key, resolved, expires)) as Promise<T>
-      : this.put(key, value, expires) as T;
+      return isPromise(value)
+        ? value.then(resolved => this.put(key, resolved, expires))
+        : this.put(key, value, expires);
+    };
+
+    return isPromise(cache) ? cache.then(handle) : handle(cache);
   }
 
   /**
@@ -87,7 +94,24 @@ export default abstract class CacheDriver<Store = any> {
    */
   public abstract remove(key: string): void;
 
+  protected expires(at: Date): Date;
+  protected expires(at: Date | null): Date | null;
+  protected expires(at: Date | null) {
+    if (at) return at;
+    if (!this.config.ttl) return null;
+
+    return typeof this.config.ttl === 'function'
+      ? this.config.ttl()
+      : new Date(Date.now() + (this.config.ttl * 1000));
+  }
+
   protected key(key: string | number): string {
-    return this.config.prefix ? `${this.config.prefix}.${key}` : key.toString();
+    if (!this.config.prefix) {
+      return key.toString();
+    }
+
+    return /[a-z0-9]$/i.test(this.config.prefix)
+      ? `${this.config.prefix}.${key}`
+      : this.config.prefix + key.toString();
   }
 }

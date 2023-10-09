@@ -23,11 +23,17 @@ describe('MapDriver', () => {
 
   describe('get', () => {
     test('returns "null" if not cache is found', () => {
-      expect(driver.get('foo')).toBeNull();
+      expect(driver.get<string>('foo')).toBeNull();
     });
 
     test('returns given fallback value if no cache is found', () => {
-      expect(driver.get('foo', 'bar')).toBe('bar');
+      expect(driver.get<string>('foo', 'bar')).toBe('bar');
+    });
+
+    test('returns given fallback callback value if no cache is found', () => {
+      const fallback = jest.fn(() => 'bar');
+      expect(driver.get<string>('foo', fallback)).toBe('bar');
+      expect(fallback).toHaveBeenCalled();
     });
 
     test('retrieves a cached item', () => {
@@ -35,7 +41,9 @@ describe('MapDriver', () => {
 
       driver.put('foo', 'bar');
 
-      expect(driver.get('foo')).toBe('bar');
+      const fallback = jest.fn(() => 'baz');
+      expect(driver.get('foo', fallback)).toBe('bar');
+      expect(fallback).not.toHaveBeenCalled();
     });
   });
 

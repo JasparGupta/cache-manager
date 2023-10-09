@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment,@typescript-eslint/no-explicit-any,class-methods-use-this,@typescript-eslint/no-unused-vars */
+import valueOf from '../support/value-of';
 import CacheDriver from './driver';
+import { Promisable } from './types';
 
 class TestDriver extends CacheDriver<any> {
   flush(): void {
     //
   }
 
-  get<T>(key: string | number, fallback: T | undefined): Promise<T | null> | T | null {
+  get<T>(key: string | number): Promisable<T | null>;
+  get<T>(key: string | number, fallback: T): Promisable<T>;
+  get<T>(key: string | number, fallback: T = null as unknown as T): Promisable<T | null> {
     return null;
   }
 
-  put<T>(key: string | number, value: T, date: Date | null | undefined): Promise<T> | T {
+  put<T>(key: string | number, value: T, date: Date | null = null): Promise<T> | T {
     return value;
   }
 
@@ -143,6 +147,41 @@ describe('driver', () => {
     });
   });
 
+  describe('expires', () => {
+    test('returns null if given value is null and ttl is not set', () => {
+      // @ts-ignore
+      driver.config.ttl = null;
+
+      // @ts-ignore
+      expect(driver.expires(null)).toBeNull();
+    });
+
+    test('returns given value if not null', () => {
+      // @ts-ignore
+      driver.config.ttl = null;
+
+      const expires = new Date();
+
+      // @ts-ignore
+      expect(driver.expires(expires)).toBe(expires);
+    });
+
+    test.each<[number, number | (() => Date)]>([
+      [60000, 60],
+      [new Date(2023, 9, 4, 10, 33).getTime(), () => new Date(2023, 9, 4, 10, 33)]
+    ])('%# returns date of expiration if null is given and ttl is set', (expected, seconds) => {
+      // @ts-ignore
+      driver.config.ttl = seconds;
+
+      const spyNow = jest.spyOn(Date, 'now').mockImplementation(() => 0);
+
+      // @ts-ignore
+      expect(driver.expires(null).getTime()).toBe(expected);
+
+      spyNow.mockRestore();
+    });
+  });
+
   describe('key', () => {
     test.each([
       ['foo', 'foo'],
@@ -154,13 +193,17 @@ describe('driver', () => {
 
     test.each<[string, string]>([
       ['', 'test'],
-      ['prefix', 'prefix.test']
-    ])('applies prefix to given key', (prefix, key) => {
+      ['prefix', 'prefix.test'],
+      ['prefix.', 'prefix.test'],
+      ['prefix:', 'prefix:test'],
+      ['prefix-', 'prefix-test'],
+      ['prefix_', 'prefix_test'],
+    ])('applies prefix to given key', (prefix, expected) => {
       // @ts-ignore
       driver.config.prefix = prefix;
 
       // @ts-ignore
-      expect(driver.key('test')).toBe(key);
+      expect(driver.key('test')).toBe(expected);
     });
   });
 });

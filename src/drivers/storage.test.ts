@@ -91,17 +91,25 @@ describe.each<[string, StorageDriver]>([
 
   describe('get', () => {
     test('returns "null" if no cache is found', () => {
-      expect(driver.get('foo')).toBeNull();
+      expect(driver.get<string>('foo')).toBeNull();
     });
 
     test('returns given fallback value if no cache is found', () => {
-      expect(driver.get('foo', 'baz')).toBe('baz');
+      expect(driver.get<string>('foo', 'baz')).toBe('baz');
+    });
+
+    test('returns given fallback callback value if no cache is found', () => {
+      const fallback = jest.fn(() => 'baz');
+      expect(driver.get<string>('foo', fallback)).toBe('baz');
+      expect(fallback).toHaveBeenCalled();
     });
 
     test('returns cache value if key exists', () => {
       driver.put('foo', 'bar');
 
-      expect(driver.get('foo')).toBe('bar');
+      const fallback = jest.fn(() => 'baz');
+      expect(driver.get('foo', fallback)).toBe('bar');
+      expect(fallback).not.toHaveBeenCalled();
     });
 
     test('returns null/given fallback value if cache exists but has expired', () => {
@@ -120,6 +128,23 @@ describe.each<[string, StorageDriver]>([
     });
   });
 
+  describe('pruned', () => {
+    test.each(['', 'prefix', 'prefix-'])('removes expired cache items', (prefix) => {
+      // @ts-ignore
+      driver.config.prefix = prefix;
+
+      expect(driver.prune()).toBe(0);
+
+      driver.put('foo1', 'bar', addMinutes(Date.now(), 10));
+      driver.put('foo2', 'bar', subMinutes(Date.now(), 10));
+      driver.put('foo3', 'bar', subMinutes(Date.now(), 10));
+      driver.put('foo4', 'bar', addMinutes(Date.now(), 10));
+      driver.put('foo5', 'bar', subMinutes(Date.now(), 10));
+
+      expect(driver.prune()).toBe(3);
+    });
+  });
+
   describe('remove', () => {
     test('removes the given key from the cache', () => {
       expect(driver.get('foo')).toBeNull();
@@ -132,5 +157,5 @@ describe.each<[string, StorageDriver]>([
 
       expect(driver.get('foo')).toBeNull();
     });
-  })
+  });
 });
