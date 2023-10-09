@@ -23,7 +23,7 @@
     "build:watch": "npm run build -- --watch",
     "prepublishOnly": "npm run build",
     "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
-    "publish:beta": "npm publish --scope @hirespace --tag beta"
+    "publish:beta": "npm publish --scope @jaspargupta --tag beta"
   },
   "optionalDependencies": {
     "@upstash/redis": "^1.20.0",
@@ -50,6 +50,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hirespace/hs-cache-manager.git"
+    "url": "https://github.com/jaspargupta/cache-manager.git"
   }
 }
