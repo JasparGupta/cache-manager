@@ -1,7 +1,27 @@
 {
   "name": "@jaspargupta/cache-manager",
   "version": "1.3.0",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./file": "./dist/drivers/file.js",
+    "./map": "./dist/drivers/map.js",
+    "./plain-object": "./dist/drivers/plain-object.js",
+    "./redis": "./dist/drivers/redis.js",
+    "./storage": "./dist/drivers/storage.js",
+    "./upstash-redis": "./dist/drivers/upstash-redis.js",
+    "./vercel-kv": "./dist/drivers/vercel-kv.js"
+  },
+  "typesVersions": {
+    "*": {
+      "file": ["./dist/drivers/file.d.ts"],
+      "map": ["./dist/drivers/map.d.ts"],
+      "plain-object": ["./dist/drivers/plain-object.d.ts"],
+      "redis": ["./dist/drivers/redis.d.ts"],
+      "storage": ["./dist/drivers/storage.d.ts"],
+      "upstash-redis": ["./dist/drivers/upstash-redis.d.ts"],
+      "vercel-kv": ["./dist/drivers/vercel-kv.d.ts"]
+    }
+  },
   "types": "dist/index.d.ts",
   "keywords": [
     "browser",
