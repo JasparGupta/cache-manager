@@ -48,33 +48,6 @@ class StorageDriver extends CacheDriver<Storage> {
   }
 
   /**
-   * Remove older items based on a key prefix.
-   */
-  public popByPrefix(prefix: string, count: number): number {
-    return Object
-      .entries(this.store)
-      .filter(([key]) => key.startsWith(prefix))
-      .map(([key, item]) => [key, JSON.parse(item)])
-      .filter(([_key, item]) => !!item.expires)
-      .slice(0, count)
-      .reduce((popped, [key]) => {
-        try {
-          /**
-           * As we are iterating through all the entries of localStorage we know that
-           * if `this.has()` returns false it is because the item has expired.
-           */
-          if (!this.has(key)) {
-            return popped + 1;
-          }
-        } catch (e) {
-          // Noop.
-        }
-
-        return popped;
-      }, 0);
-  }
-
-  /**
    * Remove expired cache items.
    */
   public prune(): number {
