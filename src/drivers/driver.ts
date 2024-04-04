@@ -73,6 +73,8 @@ export default abstract class CacheDriver<Store> {
   /**
    * Callback return-type should be a JSON stringify-able value.
    */
+  public remember<T = unknown>(key: string | number, callback: () => T, expires?: Date | null): T;
+  public remember<T = unknown>(key: string | number, callback: () => Promise<T>, expires?: Date | null): Promise<T>;
   public remember<T = unknown>(key: string | number, callback: () => T, expires: Date | null = null): Promisable<T> {
     const cache = this.get<T>(key);
 
