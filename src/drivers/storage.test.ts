@@ -1,17 +1,62 @@
-/**
- * @jest-environment jsdom
- */
 import addMinutes from 'date-fns/addMinutes';
 import subMinutes from 'date-fns/subMinutes';
-import { Cached } from './types';
+import superjson from 'superjson';
+import type { Cached } from './types';
 import StorageDriver from './storage';
 
-describe.each<[string, StorageDriver]>([
-  ['LocalStorageDriver', new StorageDriver(window.localStorage)],
-  ['SessionStorageDriver', new StorageDriver(window.sessionStorage)],
-])('%s', (_, driver) => {
+describe.each<[string, Storage]>([
+  ['LocalStorageDriver', window.localStorage],
+  ['SessionStorageDriver', window.sessionStorage],
+])('%s', (_, store) => {
+  let driver: StorageDriver;
+
   beforeEach(() => {
-    driver.api().clear();
+    store.clear();
+    driver = new StorageDriver(store);
+  });
+
+  describe('transformers', () => {
+    test('uses transformers when provided', () => {
+      const serialize = jest.fn((value: Date) => value.getTime());
+      const deserialize = jest.fn((value: number) => new Date(value));
+
+      driver = new StorageDriver(store, {
+        transformer: { deserialize, serialize }
+      });
+
+      const date = new Date();
+
+      driver.put('foo', date);
+
+      expect(serialize).toHaveBeenCalledWith(date);
+
+      const actual = driver.get<Date>('foo');
+
+      expect(deserialize).toHaveBeenCalledWith(expect.any(Number));
+      expect(actual).toBeInstanceOf(Date);
+      expect(actual?.getTime()).toBe(date.getTime());
+    });
+
+    test('superjson works', () => {
+      driver = new StorageDriver(store, { transformer: superjson });
+
+      const data = {
+        date: new Date(),
+        number: 1001,
+        regexp: /foo/,
+        string: 'hello',
+      };
+
+      driver.put('foo', data);
+
+      expect(driver.api().getItem('foo')).toBe(
+        JSON.stringify({ expires: null, key: 'foo', value: superjson.serialize(data) })
+      );
+
+      const actual = driver.get<typeof data>('foo');
+
+      expect(actual).toEqual(data);
+    });
   });
 
   describe('flush', () => {

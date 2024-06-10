@@ -1,12 +1,17 @@
 import valueOf from '../support/value-of';
 import CacheDriver from './driver';
-import type { Cached as BaseCached, Config } from './types';
+import type { Cached as BaseCached, Config, Transformer } from './types';
 
 type Cached = Omit<BaseCached, 'expires'> & { expires: number | null };
 
 class StorageDriver extends CacheDriver<Storage> {
   constructor(protected store: Storage, config: Partial<Config> = {}) {
-    super(store, config);
+    const fallbackTransformer: Transformer<any, any> = {
+      deserialize: value => value,
+      serialize: value => value,
+    };
+
+    super(store, { ...config, transformer: config.transformer ?? fallbackTransformer });
   }
 
   public flush(): void {
@@ -22,7 +27,7 @@ class StorageDriver extends CacheDriver<Storage> {
         const cache = this.store.getItem(this.key(key)) as string;
         const { value } = JSON.parse(cache);
 
-        return value;
+        return this.config.transformer.deserialize(value);
       } catch (error) {
         return valueOf(fallback);
       }
@@ -41,7 +46,7 @@ class StorageDriver extends CacheDriver<Storage> {
     this.store.setItem(this.key(key), JSON.stringify({
       expires: expires ? this.expires(expires).getTime() : null,
       key,
-      value
+      value: this.config.transformer.serialize(value),
     } as Cached));
 
     return value;

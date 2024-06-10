@@ -1,13 +1,18 @@
 import fs from 'node:fs';
 import valueOf from '../support/value-of';
 import CacheDriver from './driver';
-import type { Cached as BaseCached, Config } from './types';
+import type { Cached as BaseCached, Config, Transformer } from './types';
 
 type Cached = Omit<BaseCached, 'expires'> & { expires: number | null };
 
 export default class FileDriver extends CacheDriver<string> {
   constructor(path: string, config: Partial<Config> = {}) {
-    super(path, config);
+    const fallbackTransformer: Transformer<any, any> = {
+      deserialize: value => value,
+      serialize: value => value,
+    };
+
+    super(path, { ...config, transformer: config.transformer ?? fallbackTransformer });
 
     if (!fs.existsSync(path)) {
       const file = fs.openSync(path, 'w');
@@ -37,7 +42,7 @@ export default class FileDriver extends CacheDriver<string> {
       return valueOf(fallback);
     }
 
-    return value;
+    return this.config.transformer.deserialize(value);
   }
 
   public put<T>(key: string, value: T, expires: Date | null = null): T {
@@ -48,7 +53,7 @@ export default class FileDriver extends CacheDriver<string> {
         [this.key(key)]: {
           expires: expires ? this.expires(expires).getTime() : null,
           key,
-          value
+          value: this.config.transformer.serialize(value)
         }
       };
     });

@@ -1,11 +1,16 @@
 import { type Redis } from '@upstash/redis';
 import CacheDriver from './driver';
-import { Config } from './types';
+import { Config, type Transformer } from './types';
 import valueOf from '../support/value-of';
 
 export default class UpstashRedisDriver<Client extends Redis> extends CacheDriver<Client> {
   constructor(client: Client, config: Partial<Config> = {}) {
-    super(client, config);
+    const fallbackTransformer: Transformer<any, any> = {
+      deserialize: value => value,
+      serialize: value => value,
+    };
+
+    super(client, { ...config, transformer: config.transformer ?? fallbackTransformer });
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
@@ -25,11 +30,9 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     if (await this.has(key)) {
       const cache = await this.store.get(this.key(key));
 
-      try {
-        return JSON.parse(cache as string);
-      } catch (error) {
-        return cache as unknown as T;
-      }
+      if (typeof cache !== 'string') return null;
+
+      return this.config.transformer.deserialize(JSON.parse(cache));
     }
 
     return valueOf(fallback);
@@ -41,7 +44,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
     return response.length > 0
       ? response
         .filter((item): item is string => item !== null)
-        .map(item => JSON.parse(item))
+        .map(item => this.config.transformer.deserialize(JSON.parse(item)))
       : fallback;
   }
 
@@ -58,7 +61,7 @@ export default class UpstashRedisDriver<Client extends Redis> extends CacheDrive
   public async put<T>(key: string | number, value: T, expires: Date | null = null): Promise<T> {
     await this.store.set(
       this.key(key),
-      JSON.stringify(value),
+      JSON.stringify(this.config.transformer.serialize(value)),
       expires ? { pxat: this.expires(expires).getTime() } : {}
     );
 

@@ -1,9 +1,42 @@
+/**
+ * @jest-environment node
+ */
 import { createClient } from '@vercel/kv';
 import type { RedisConfigNodejs } from '@upstash/redis';
 
 const config: RedisConfigNodejs = { token: '', url: '' };
 
-describe('RedisDriver', () => {
+describe('VercelKvDriver', () => {
+  describe('transformers', () => {
+    test('uses transformers when provided', async () => {
+      const serialize = jest.fn((value: Date) => value.getTime());
+      const deserialize = jest.fn((value: number) => new Date(value));
+
+      const { default: VercelKvDriver } = await import('./vercel-kv');
+      const driver = new VercelKvDriver(createClient(config), {
+        transformer: { deserialize, serialize }
+      });
+
+      const date = new Date();
+
+      const spySet = jest.spyOn(driver.api(), 'set').mockResolvedValue('OK');
+      const spyGet = jest.spyOn(driver.api(), 'get').mockResolvedValue(date.getTime());
+
+      void await driver.put('foo', date);
+
+      expect(serialize).toHaveBeenCalledWith(date);
+
+      const actual = await driver.get<Date>('foo');
+
+      expect(deserialize).toHaveBeenCalledWith(expect.any(Number));
+      expect(actual).toBeInstanceOf(Date);
+      expect(actual?.getTime()).toBe(date.getTime());
+
+      spySet.mockRestore();
+      spyGet.mockRestore();
+    });
+  });
+
   describe('flush', () => {
     test('removes all keys from redis', async () => {
       const { default: VercelKvDriver } = await import('./vercel-kv');

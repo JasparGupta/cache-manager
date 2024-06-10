@@ -3,11 +3,14 @@
 I guess coming from a Laravel background I enjoyed/am used to using their syntax for interacting with cache and wanted to continue that in the browser/Node.
 
 Current drivers out of the box are (simply because these are the ones I use): 
-- Plain object (browser/server)
-- Map (browser/server)
+- File (server) 
 - Local storage (browser)
-- Session storage (browser)
+- Map (browser/server)
+- Plain object (browser/server)
 - Redis (server)
+- Session storage (browser)
+- Upstash (server)
+- VercelKV (server)
 
 Any others you'll have to write yourself, feel free to open a PR if you want to have another provider included.
 
@@ -82,7 +85,7 @@ You can pass optional config to your cache drivers.
 
  - `prefix` allows you to prefix your cache keys with the given value. By default it will place a dot (`.`) between the given prefix and the cache key. This will automatically be overridden if your prefix ends with a non-alphanumeric character.
 
-```
+```ts
 // Config: { prefix: 'foo' }
 cache().put('bar', true); // => Cached under "foo.bar"
 
@@ -90,9 +93,20 @@ cache().put('bar', true); // => Cached under "foo.bar"
 cache().put('bar', true); // => Cached under "foo-bar"
 ```
 
+ - `transformer` allows you to provide serialisation and deserialisation for the cached value. This is useful when the cache store requires a stringified value but when returned from cache it is not in the type e.g. using one of the Storage drivers, storing a `Date` instance gets serialised as a string, but when retrieved it won't be a `Date` instance. This option integrates seemlessly with [`superjson`](https://www.npmjs.com/package/superjson).
+
+```ts
+import superjson from 'superjson';
+
+const driver = new StorageDriver(window.localStorage, { transformer: superjson });
+
+// `cached` will be an instance of `Date` always.
+const cached = driver.remember('foo', () => new Date());
+```
+
  - `ttl` allows you to set a default cache time. By default all keys are cached indefinitely. It will accept either a `number` which represents the amount of seconds the key will be cached for. Or it will accept a `callback` which must return a `Date` instance of the time of expiration.
 
-```
+```ts
 // Config: { ttl: 1000 * 60 * 5 } => Cache everything by default for 5 minutes.
 
 // Config: { ttl: () => endOfToday() } => Use date-fns function to cache everything by default until the end of the current day.

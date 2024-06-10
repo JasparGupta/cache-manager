@@ -1,13 +1,18 @@
 import { ClientClosedError, type createClient } from 'redis';
 import CacheDriver from './driver';
-import { Config } from './types';
+import { Config, type Transformer } from './types';
 import valueOf from '../support/value-of';
 
-export default class RedisDriver<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
+export default class RedisDriver extends CacheDriver<ReturnType<typeof createClient>> {
   private timer?: NodeJS.Timer;
 
-  constructor(client: Client, config: Partial<Config> = {}) {
-    super(client, config);
+  constructor(client: ReturnType<typeof createClient>, config: Partial<Config> = {}) {
+    const fallbackTransformer: Transformer<any, any> = {
+      deserialize: value => value,
+      serialize: value => value,
+    };
+
+    super(client, { ...config, transformer: config.transformer ?? fallbackTransformer });
   }
 
   public async decrement(key: string, count = 1): Promise<number> {
@@ -30,11 +35,9 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
       if (await this.has(key)) {
         const cache = await this.store.get(this.key(key));
 
-        try {
-          return JSON.parse(cache!);
-        } catch (error) {
-          return cache;
-        }
+        if (!cache) return null;
+
+        return this.config.transformer.deserialize(JSON.parse(cache));
       }
 
       return valueOf(fallback);
@@ -48,7 +51,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
       return response.length > 0
         ? response
           .filter((item): item is string => item !== null)
-          .map(item => JSON.parse(item))
+          .map(item => this.config.transformer.deserialize(JSON.parse(item)))
         : fallback;
     });
   }
@@ -69,7 +72,7 @@ export default class RedisDriver<Client extends ReturnType<typeof createClient>>
     return this.connect(async () => {
       void await this.store.set(
         this.key(key),
-        JSON.stringify(value),
+        JSON.stringify(this.config.transformer.serialize(value)),
         expires ? { PXAT: this.expires(expires).getTime() } : {}
       );
 

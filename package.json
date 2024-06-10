@@ -1,6 +1,19 @@
 {
   "name": "@jaspargupta/cache-manager",
   "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "npm run test -- --watch",
+    "lint": "eslint 'src/**' --ext .ts --quiet",
+    "clean": "rm -rf ./dist",
+    "prebuild": "npm run clean && npm run test && npm run lint",
+    "build": "tsc",
+    "build:watch": "npm run build -- --watch",
+    "prepublishOnly": "npm run build",
+    "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
+    "publish:beta": "npm publish --scope @jaspargupta --tag beta"
+  },
   "exports": {
     ".": "./dist/index.js",
     "./file": "./dist/drivers/file.js",
@@ -46,24 +59,24 @@
   "files": [
     "dist/**/*"
   ],
-  "scripts": {
-    "test": "jest",
-    "test:watch": "npm run test -- --watch",
-    "lint": "eslint 'src/**' --ext .ts --quiet",
-    "clean": "rm -rf ./dist",
-    "prebuild": "npm run clean && npm run test && npm run lint",
-    "build": "tsc",
-    "build:watch": "npm run build -- --watch",
-    "prepublishOnly": "npm run build",
-    "prepublish:beta": "npm version prerelease --preid beta --allow-same-version",
-    "publish:beta": "npm publish --scope @jaspargupta --tag beta"
-  },
-  "optionalDependencies": {
+  "peerDependencies": {
     "@upstash/redis": "^1.20.0",
     "@vercel/kv": "^0.2.2",
     "redis": "^4.1.0"
   },
+  "peerDependenciesMeta": {
+    "@upstash/redis": {
+      "optional": true
+    },
+    "@vercel/kv": {
+      "optional": true
+    },
+    "redis": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@babel/preset-env": "^7.24.7",
     "@types/crypto-js": "^4.1.1",
     "@types/jest": "^28.1.2",
     "@types/node": "^18.17.19",
@@ -72,8 +85,9 @@
     "eslint-config-hirespace": "^3.3.2",
     "jest": "^28.1.1",
     "jest-environment-jsdom": "^28.1.1",
+    "superjson": "^2.2.1",
     "ts-jest": "^28.0.5",
-    "typescript": "^5.2.2"
+    "typescript": "^5.4.5"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"

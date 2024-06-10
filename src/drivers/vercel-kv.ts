@@ -1,11 +1,16 @@
 import type { createClient } from '@vercel/kv';
 import valueOf from '../support/value-of';
-import { Config, Promisable } from './types';
+import type { Config, Promisable, Transformer } from './types';
 import CacheDriver from './driver';
 
 export default class VercelKv<Client extends ReturnType<typeof createClient>> extends CacheDriver<Client> {
   constructor(client: Client, config: Partial<Config> = {}) {
-    super(client, config);
+    const fallbackTransformer: Transformer<any, any> = {
+      deserialize: value => value,
+      serialize: value => value,
+    };
+
+    super(client, { ...config, transformer: config.transformer ?? fallbackTransformer });
   }
 
   public async flush(): Promise<void> {
@@ -20,7 +25,7 @@ export default class VercelKv<Client extends ReturnType<typeof createClient>> ex
     const cache = await this.store.get<string>(this.key(key));
 
     try {
-      return cache ? JSON.parse(cache) : valueOf(fallback);
+      return cache ? this.config.transformer.deserialize(JSON.parse(cache)) : valueOf(fallback);
     } catch (e) {
       return valueOf(fallback);
     }
@@ -33,7 +38,7 @@ export default class VercelKv<Client extends ReturnType<typeof createClient>> ex
   public async put<T>(key: string | number, value: T, expires: Date | null = null): Promise<T> {
     void await this.store.set(
       this.key(key),
-      JSON.stringify(value),
+      JSON.stringify(this.config.transformer.serialize(value)),
       expires ? { pxat: this.expires(expires).getTime() } : {}
     );
 

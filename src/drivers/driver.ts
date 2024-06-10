@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any,class-methods-use-this */
 import isPromise from '../support/is-promise';
-import { Config, Promisable } from './types';
+import type { Config, Promisable } from './types';
 
 export default abstract class CacheDriver<Store> {
   protected config: Config;
@@ -11,6 +11,10 @@ export default abstract class CacheDriver<Store> {
     this.store = store;
     this.config = {
       prefix: '',
+      transformer: {
+        deserialize: value => value,
+        serialize: value => value,
+      },
       ttl: null,
       ...config,
     };

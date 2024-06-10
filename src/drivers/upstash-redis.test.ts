@@ -1,13 +1,48 @@
+/**
+ * @jest-environment node
+ */
 import { Redis as Client } from '@upstash/redis';
 
 describe('UpstashRedisDriver', () => {
-
   let client: Client;
 
   beforeEach(() => {
     client = new Client({
+      automaticDeserialization: false,
       url: '',
       token: ''
+    });
+  });
+
+  describe('transformers', () => {
+    test('uses transformers when provided', async () => {
+      const serialize = jest.fn((value: Date) => value.getTime());
+      const deserialize = jest.fn((value: number) => new Date(value));
+
+      const { default: UpstashRedisDriver } = await import('./upstash-redis');
+      const driver = new UpstashRedisDriver(client, {
+        transformer: { deserialize, serialize }
+      });
+
+      const date = new Date();
+
+      const spySet = jest.spyOn(driver.api(), 'set').mockResolvedValue('OK');
+      const spyHas = jest.spyOn(driver, 'has').mockResolvedValue(true);
+      const spyGet = jest.spyOn(driver.api(), 'get').mockResolvedValue(date.getTime().toString(10));
+
+      void await driver.put('foo', date);
+
+      expect(serialize).toHaveBeenCalledWith(date);
+
+      const actual = await driver.get<Date>('foo');
+
+      expect(deserialize).toHaveBeenCalledWith(expect.any(Number));
+      expect(actual).toBeInstanceOf(Date);
+      expect(actual?.getTime()).toBe(date.getTime());
+
+      spySet.mockRestore();
+      spyHas.mockRestore();
+      spyGet.mockRestore();
     });
   });
 

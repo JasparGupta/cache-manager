@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import fs from 'node:fs';
 import FileDriver from './file';
 
@@ -23,6 +26,29 @@ describe('FileDriver', () => {
 
     beforeEach(() => {
       driver = new FileDriver(path);
+    });
+
+    describe('transformers', () => {
+      test('uses transformers when provided', () => {
+        const serialize = jest.fn((value: Date) => value.getTime());
+        const deserialize = jest.fn((value: number) => new Date(value));
+
+        driver = new FileDriver(path, {
+          transformer: { deserialize, serialize }
+        });
+
+        const date = new Date();
+
+        driver.put('foo', date);
+
+        expect(serialize).toHaveBeenCalledWith(date);
+
+        const actual = driver.get<Date>('foo');
+
+        expect(deserialize).toHaveBeenCalledWith(expect.any(Number));
+        expect(actual).toBeInstanceOf(Date);
+        expect(actual?.getTime()).toBe(date.getTime());
+      });
     });
 
     describe('flush', () => {
