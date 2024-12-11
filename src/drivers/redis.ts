@@ -24,7 +24,7 @@ export default class RedisDriver extends CacheDriver<ReturnType<typeof createCli
   }
 
   public async flush(): Promise<void> {
-    await this.connect(() => this.store.flushAll());
+    await this.connect(() => this.store.flushDb());
   }
 
   public async get<T>(key: string | number): Promise<T | null>;
