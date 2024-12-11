@@ -56,13 +56,13 @@ describe('RedisDriver', () => {
 
   describe('flush', () => {
     test('removes all keys from redis', async () => {
-      const spyFlushAll = jest.spyOn(driver.api(), 'flushAll').mockImplementation();
+      const spyFlushDb = jest.spyOn(driver.api(), 'flushDb').mockImplementation();
 
       await driver.flush();
 
-      expect(driver.api().flushAll).toHaveBeenCalled();
+      expect(driver.api().flushDb).toHaveBeenCalled();
 
-      spyFlushAll.mockRestore();
+      spyFlushDb.mockRestore();
     });
   });
 
